@@ -44,3 +44,12 @@
 - It atomically creates a customer user with no password, a workspace, an owner membership, and an audit record.
 - The function deliberately does not invent or email a password. The customer cannot sign in until an expiring invitation/password-setup flow is implemented.
 - Workspace slug and email uniqueness are checked for friendly errors; database unique constraints remain authoritative under concurrent requests.
+
+
+## Customer invitation credential
+
+- A customer invitation is a random 256-bit, URL-safe, one-time token with a default 24-hour lifetime (configurable up to 7 days).
+- Only the SHA-256 token hash is stored. The raw token is returned once by the server-side invitation primitive and must be handed to the customer only through a trusted delivery channel; it must never be logged.
+- Creating a replacement invitation revokes prior unused, unexpired invitations for that customer in the same transaction.
+- Invitation creation rechecks the platform administrator role inside the transaction and writes an audit event.
+- Password setup, token consumption, session authentication, and email delivery are not yet implemented. Do not treat invitation creation alone as an enabled login flow.
