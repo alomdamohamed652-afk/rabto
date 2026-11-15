@@ -209,4 +209,16 @@ export const auditLogs = pgTable("audit_logs", {
   entityId: uuid("entity_id"),
   details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
   createdAt: createdAt()
-}, (t) => [index("audit_logs_workspace_created_idx").on(t.workspaceId, t.createdAt)]);
+}, (t) => [index("audit_logs_workspace_created_idx").on(t.workspaceId, t.createdAt)]);\n\nexport const customerInvitations = pgTable("customer_invitations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdByUserId: uuid("created_by_user_id").notNull().references(() => users.id),
+  createdAt: createdAt()
+}, (t) => [
+  index("customer_invitations_user_created_idx").on(t.userId, t.createdAt),
+  index("customer_invitations_expiry_idx").on(t.expiresAt)
+]);
