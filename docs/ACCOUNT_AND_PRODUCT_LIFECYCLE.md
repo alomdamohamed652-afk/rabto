@@ -38,3 +38,9 @@
 - `listWorkspaceProductsForMember` scopes the product listing through the signed-in user workspace membership and returns product metadata, channel public codes, activation status, and channel credit balances.
 - It deliberately excludes activation-secret hashes and internal ledger details.
 - The user ID must come from the authenticated server session. Do not expose this function through a route that trusts a browser-supplied user ID.
+
+## Customer account creation
+- `createCustomerAccount` is a server-only provisioning primitive guarded by a database-backed platform admin check.
+- It atomically creates a customer user with no password, a workspace, an owner membership, and an audit record.
+- The function deliberately does not invent or email a password. The customer cannot sign in until an expiring invitation/password-setup flow is implemented.
+- Workspace slug and email uniqueness are checked for friendly errors; database unique constraints remain authoritative under concurrent requests.
