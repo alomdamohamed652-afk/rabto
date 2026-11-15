@@ -25,3 +25,11 @@
 - The schema distinguishes platform administrator role from workspace roles.
 - Product/code generation primitives create opaque public codes and one-time activation secrets.
 - Customer provisioning UI/API, authentication/session enforcement, assignment screens, QR image/PDF rendering, and database-backed generation transactions are still pending. Do not expose provisioning as an unauthenticated endpoint.
+
+## Batch provisioning implementation
+- `provisionProductBatch` is a server-side, transaction-scoped primitive for platform admins.
+- It verifies the platform admin role, workspace existence, and that the active product type belongs to that workspace.
+- It creates the batch, products, independent QR/NFC public codes, hashed one-time activation secrets, initial destination/version records, zeroed per-channel credit accounts, and an audit event atomically.
+- It returns raw activation secrets exactly once to the trusted provisioning caller. Never log or persist those raw values.
+- It does not create an HTTP endpoint or replace session authentication. A future admin route must authenticate the session before calling it.
+- Product codes remain inactive until the separate claim/activation flow completes; scans before activation resolve to unavailable.
