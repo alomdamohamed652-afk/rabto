@@ -34,7 +34,9 @@ Use:
 6. `playwright-cli` for rendered-flow and responsive verification.
 
 ### Motion and transitions
-- Use `gsap-skills` and GSAP only for complex, purposeful sequences.
+- Use Motion.dev (`motion` package and its `motion-ai` skill) as the default React animation system for entrances/exits, layout transitions, gestures, and small coordinated interactions.
+- Use CSS for simple hover/color transitions.
+- Use `gsap-skills` and GSAP only for complex, purposeful timelines or scroll choreography that Motion does not simplify; do not duplicate animation engines for the same effect.
 - Use `transitions.dev` as a reference for appropriate transitions.
 - Prefer CSS for simple state changes. Respect `prefers-reduced-motion`.
 - Never add motion that delays navigation, obscures state, or harms low-end/mobile performance.
