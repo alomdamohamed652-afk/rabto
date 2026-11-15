@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { linkDestinations, productCodes, products } from "@/db/schema";
 
+export const runtime = "nodejs";
+
 const CODE_PATTERN = /^[A-Za-z0-9_-]{6,32}$/;
 
 function unavailable() {
