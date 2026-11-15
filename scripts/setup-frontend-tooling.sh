@@ -36,4 +36,10 @@ cd "$PROJECT_ROOT"
 npm exec --yes --package=ui-ux-pro-max-cli -- uipro init --ai universal
 
 echo "Installed UI/UX Pro Max for the universal agent skills directory."
+
+# Install Motion's official AI documentation skill and React animation package.
+npx --yes motion-ai
+npm install motion
+
+echo "Installed Motion AI skill and Motion for React runtime."
 echo "Start a new agent session so the newly installed skills are discovered."
