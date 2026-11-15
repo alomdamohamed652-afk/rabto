@@ -26,4 +26,10 @@ cd "$TMP_DIR/design-workbench-skills"
 
 echo
 echo "Installed the design-workbench skill pack."
+
+# Install the official UI/UX Pro Max design-intelligence skill for the
+# universal Agent Skills directory used by Codex-compatible agents.
+npm exec --yes --package=ui-ux-pro-max-cli -- uipro init --ai universal
+
+echo "Installed UI/UX Pro Max for the universal agent skills directory."
 echo "Start a new agent session so the newly installed skills are discovered."
