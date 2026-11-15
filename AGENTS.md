@@ -59,3 +59,19 @@ Use Designlang to extract/inspect rendered design tokens and compare screens whe
 The repository setup script is `scripts/setup-frontend-tooling.sh`. It installs the Design Workbench pack and UI/UX Pro Max into the local developer environment/project skill directory. The script must be run from the repository root on a machine with Git, Node.js/npm, and Python 3.x. Browser binaries are intentionally not installed by default.
 
 The GitHub repository itself does not execute local setup scripts. If skills are not present in the active agent runtime, follow their documented guidance only when available and clearly disclose that the runtime installation is pending. Do not state that all skills are active merely because their setup instructions are committed.
+
+
+## MotionSites.ai inspiration reference
+
+Use https://motionsites.ai/ as a visual inspiration library for motion concepts and section treatments, not as a source to clone a site's identity or copy assets/code.
+
+When designing RABTO motion, selectively study:
+- Hero-section entrances and layered reveal sequences.
+- Subtle animated backgrounds that support the product story rather than compete with it.
+- Scroll-triggered section reveals with restrained stagger.
+- Product/feature showcases that use depth, perspective, or parallax only when they clarify the physical-to-digital connection.
+- CTA and footer transitions that provide a polished ending without delaying actions.
+
+Translate ideas into RABTO's charcoal, light-sage, and ivory identity. Prefer a restrained physical-to-digital motif: a product/tag, a fine sage connection path, then its digital destination. Avoid generic neon glows, excessive floating particles, constant movement, heavy video backgrounds, and motion that obscures content.
+
+For each proposed effect, document its purpose, trigger, duration, reduced-motion fallback, and mobile/performance cost. Use Motion.dev as the default React implementation engine; use CSS for simple transitions and GSAP only for complex choreography. Check keyboard access and `prefers-reduced-motion`. Do not reproduce MotionSites' or showcased sites' exact layouts, logos, imagery, or copy.
