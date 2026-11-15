@@ -20,9 +20,24 @@ export async function POST(request: Request) {
   }
 
   const tokenHash = hashCustomerInvitationToken(body.token);
-  const passwordHash = await hashPassword(body.password);
   const db = getDb();
 
+  // Reject invalid tokens before performing the deliberately expensive password hash.
+  // The invitation is revalidated inside the transaction to prevent replay/race conditions.
+  const [candidate] = await db.select({ id: customerInvitations.id })
+    .from(customerInvitations)
+    .where(and(
+      eq(customerInvitations.tokenHash, tokenHash),
+      isNull(customerInvitations.usedAt),
+      isNull(customerInvitations.revokedAt),
+      gt(customerInvitations.expiresAt, new Date()),
+    ))
+    .limit(1);
+  if (!candidate) {
+    return NextResponse.json({ error: "This invitation is invalid, expired, revoked, or already used." }, { status: 400 });
+  }
+
+  const passwordHash = await hashPassword(body.password);
   try {
     const userId = await db.transaction(async (tx) => {
       const now = new Date();
