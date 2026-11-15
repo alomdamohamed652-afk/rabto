@@ -1,22 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run from the RABTO repository root.
+# Install the exact five skills shown in the supplied reference plus their
+# orchestrator. Run from the RABTO repository root on the developer machine.
 if [[ ! -f package.json ]]; then
   echo "Run this script from the RABTO repository root." >&2
   exit 1
 fi
+command -v git >/dev/null 2>&1 || { echo "Git is required." >&2; exit 1; }
+command -v npm >/dev/null 2>&1 || { echo "Node.js/npm is required." >&2; exit 1; }
 
-node --version
-npm --version
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
 
-npx skills add https://github.com/heydamir/unslop
-npx skills add pbakaus/impeccable
-npx skills add https://github.com/Leonxlnx/taste-skill --skill "redesign-existing-projects"
-npx skills add https://github.com/greensock/gsap-skills
-npx skills add Jakubantalik/transitions.dev
+git clone --depth 1 https://github.com/arthurmi681/design-workbench-skills.git "$TMP_DIR/design-workbench-skills"
+cd "$TMP_DIR/design-workbench-skills"
 
-npm install -D designlang @playwright/cli
-npx playwright-cli install
+# Validate the complete upstream bundle before changing the local skill setup.
+./test.sh
 
-echo "Toolchain setup complete. See docs/FRONTEND_TOOLING.md for optional Impeccable hooks, Designlang MCP, React Bits, and GSAP runtime usage."
+# Installs Taste, Web Design Guidelines, Playwright CLI, Awesome Design,
+# Image-to-Code, and the Design Workbench orchestrator. Browser download is
+# intentionally skipped; it can be installed later with playwright-cli.
+./install.sh --no-browser
+
+echo
+echo "Installed the design-workbench skill pack."
+echo "Start a new agent session so the newly installed skills are discovered."
