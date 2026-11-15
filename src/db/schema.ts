@@ -118,7 +118,7 @@ export const productPageLinks = pgTable("product_page_links", {
   id: uuid("id").defaultRandom().primaryKey(),
   productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   pageId: uuid("page_id").notNull().references(() => digitalPages.id, { onDelete: "cascade" }),
-  createdAt: timestamps.createdAt
+  createdAt: createdAt()
 }, (t) => [uniqueIndex("product_page_links_unique").on(t.productId, t.pageId)]);
 
 export const linkDestinations = pgTable("link_destinations", {
@@ -139,7 +139,7 @@ export const linkVersions = pgTable("link_versions", {
   destinationUrl: text("destination_url").notNull(),
   changedByUserId: uuid("changed_by_user_id").references(() => users.id),
   changeReason: text("change_reason"),
-  createdAt: timestamps.createdAt
+  createdAt: createdAt()
 }, (t) => [uniqueIndex("link_versions_destination_version_unique").on(t.linkDestinationId, t.version)]);
 
 export const creditAccounts = pgTable("credit_accounts", {
@@ -147,7 +147,7 @@ export const creditAccounts = pgTable("credit_accounts", {
   productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
   channel: channelType("channel").notNull(),
   balance: integer("balance").notNull().default(0),
-  updatedAt: timestamps.updatedAt
+  updatedAt: updatedAt()
 }, (t) => [
   uniqueIndex("credit_accounts_product_channel_unique").on(t.productId, t.channel),
   check("credit_accounts_balance_nonnegative", sql`${t.balance} >= 0`)
@@ -162,7 +162,7 @@ export const creditLedger = pgTable("credit_ledger", {
   reason: text("reason").notNull(),
   referenceId: uuid("reference_id"),
   actorUserId: uuid("actor_user_id").references(() => users.id),
-  createdAt: timestamps.createdAt
+  createdAt: createdAt()
 }, (t) => [
   index("credit_ledger_account_created_idx").on(t.accountId, t.createdAt),
   check("credit_ledger_amount_nonzero", sql`${t.amount} <> 0`)
@@ -205,5 +205,5 @@ export const auditLogs = pgTable("audit_logs", {
   entityType: varchar("entity_type", { length: 80 }).notNull(),
   entityId: uuid("entity_id"),
   details: jsonb("details").$type<Record<string, unknown>>().notNull().default({}),
-  createdAt: timestamps.createdAt
+  createdAt: createdAt()
 }, (t) => [index("audit_logs_workspace_created_idx").on(t.workspaceId, t.createdAt)]);
