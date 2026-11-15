@@ -1,26 +1,20 @@
 # RABTO
 
-Brand identity workspace for RABTO.
+Repository for the approved RABTO brand identity and source image assets.
 
 ## Approved direction
 - Interlocking geometric R monogram
 - RABTO wordmark
-- Charcoal / near-black, light sage green, warm ivory
+- Charcoal / near-black
+- Light sage green accent
+- Warm ivory background
 
-## Structure
-- brand-assets/svg/ — editable vector starting masters
-- brand-assets/previews/ — raster previews (pending upload)
-- docs/ — brand usage notes
+## Asset policy
+Only user-approved image assets should be added here. Do not add provisional or reconstructed SVG artwork. The owner will upload the approved image files directly.
 
-## SVG masters
-- rabto-primary.svg — full-color primary lockup
-- rabto-symbol.svg — standalone monogram
-- rabto-monochrome.svg — black single-color lockup
-- rabto-white.svg — white lockup for dark backgrounds
-
-## Palette
-- Charcoal: #171D1B
-- Light sage: #8EAD83
-- Ivory: #F7F4ED
-
-Production note: These SVGs are editable vector starting masters based on the approved direction, not traced originals of the reference image. Refine exact geometry and lettering against the approved reference before manufacturing. The PNG concept previews are not yet committed.
+## Suggested folders
+- brand-assets/primary/
+- brand-assets/symbol/
+- brand-assets/app-icon/
+- brand-assets/monochrome/
+- brand-assets/previews/
