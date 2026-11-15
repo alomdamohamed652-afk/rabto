@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLogs, users, workspaceMembers, workspaces } from "@/db/schema";
 import { requirePlatformAdmin } from "@/lib/access-control";
