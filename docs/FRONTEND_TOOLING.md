@@ -124,3 +124,19 @@ Use the official [Motion](https://motion.dev/) React animation library and its f
 Motion is the default choice for declarative React UI motion: entrance/exit, layout changes, gestures, and small coordinated transitions. Prefer CSS for simple hover/color transitions. Use GSAP only when a complex timeline or scroll choreography justifies it; avoid implementing the same animation with multiple engines.
 
 Respect `prefers-reduced-motion`, keep animations brief and purposeful, prioritize transform/opacity, and avoid animating layout-heavy properties. Do not introduce Motion+ paid features or assume they are available. The setup script installs the free Motion AI skill and the `motion` package into the RABTO project.
+
+
+## Motion inspiration library — MotionSites.ai
+
+Reference: https://motionsites.ai/
+
+MotionSites is used as an inspiration catalog for animated website treatments, including hero sections, feature sections, calls to action, footers, and animated backgrounds. It is not a dependency and is not a source to copy site identity, code, images, or text.
+
+For RABTO, study and selectively adapt:
+- Hero reveals and carefully staged entrances.
+- Restrained animated backgrounds.
+- Scroll reveals and staggered content.
+- Product showcases with subtle depth/perspective when they explain NFC/QR-to-digital linking.
+- Polished CTA/footer transitions.
+
+Every effect must support comprehension or feedback, respect reduced-motion preferences, work in RTL and on mobile, and remain performant on lower-end devices. Motion.dev remains the default React animation engine; CSS handles simple transitions and GSAP is reserved for complex timelines. RABTO's charcoal, light sage, and ivory brand remains authoritative.
