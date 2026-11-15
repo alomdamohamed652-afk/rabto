@@ -110,3 +110,17 @@ npm exec --yes --package=ui-ux-pro-max-cli -- uipro init --ai universal
 ```
 
 This targets the universal Agent Skills directory for Codex-compatible agents. The skill supplies searchable design intelligence: interface styles, palettes, typography, UX/accessibility guidance, charts, and stack-specific implementation references. Its search tooling requires Python 3.x. It complements Design Workbench; it does not replace RABTO's approved brand tokens or product decisions.
+
+
+## Motion.dev
+
+Use the official [Motion](https://motion.dev/) React animation library and its free, open-source AI Kit skill:
+
+- AI skill installer: `npx motion-ai`
+- React runtime: `npm install motion`
+- React import: `import { motion } from "motion/react"`
+- Next.js App Router server-component-friendly entry point: `import * as motion from "motion/react-client"` where appropriate.
+
+Motion is the default choice for declarative React UI motion: entrance/exit, layout changes, gestures, and small coordinated transitions. Prefer CSS for simple hover/color transitions. Use GSAP only when a complex timeline or scroll choreography justifies it; avoid implementing the same animation with multiple engines.
+
+Respect `prefers-reduced-motion`, keep animations brief and purposeful, prioritize transform/opacity, and avoid animating layout-heavy properties. Do not introduce Motion+ paid features or assume they are available. The setup script installs the free Motion AI skill and the `motion` package into the RABTO project.
