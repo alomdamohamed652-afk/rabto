@@ -25,7 +25,8 @@ export const workspaces = pgTable("workspaces", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 120 }).notNull(),
   slug: varchar("slug", { length: 80 }).notNull().unique(),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 });
 
 export const workspaceMembers = pgTable("workspace_members", {
@@ -46,7 +47,8 @@ export const productTypes = pgTable("product_types", {
   skuPrefix: varchar("sku_prefix", { length: 24 }).notNull(),
   attributes: jsonb("attributes").$type<Record<string, unknown>>().notNull().default({}),
   isActive: boolean("is_active").notNull().default(true),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [index("product_types_workspace_idx").on(t.workspaceId)]);
 
 export const productBatches = pgTable("product_batches", {
@@ -55,7 +57,8 @@ export const productBatches = pgTable("product_batches", {
   productTypeId: uuid("product_type_id").notNull().references(() => productTypes.id),
   code: varchar("code", { length: 64 }).notNull(),
   quantity: integer("quantity").notNull(),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [
   uniqueIndex("product_batches_workspace_code_unique").on(t.workspaceId, t.code),
   check("product_batches_quantity_positive", sql`${t.quantity} > 0`)
@@ -71,7 +74,8 @@ export const products = pgTable("products", {
   status: productStatus("status").notNull().default("draft"),
   productionStage: varchar("production_stage", { length: 60 }),
   metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [
   uniqueIndex("products_workspace_sku_unique").on(t.workspaceId, t.sku),
   uniqueIndex("products_serial_unique").on(t.serialNumber),
@@ -86,7 +90,8 @@ export const productCodes = pgTable("product_codes", {
   publicCode: varchar("public_code", { length: 32 }).notNull().unique(),
   activationSecretHash: text("activation_secret_hash").notNull(),
   activatedAt: timestamp("activated_at", { withTimezone: true }),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [uniqueIndex("product_codes_product_channel_unique").on(t.productId, t.channel)]);
 
 export const productClaims = pgTable("product_claims", {
@@ -105,7 +110,8 @@ export const digitalPages = pgTable("digital_pages", {
   draftContent: jsonb("draft_content").$type<Record<string, unknown>>().notNull().default({}),
   publishedSnapshot: jsonb("published_snapshot").$type<Record<string, unknown>>(),
   publishedAt: timestamp("published_at", { withTimezone: true }),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [uniqueIndex("digital_pages_workspace_slug_unique").on(t.workspaceId, t.slug)]);
 
 export const productPageLinks = pgTable("product_page_links", {
@@ -173,7 +179,8 @@ export const orders = pgTable("orders", {
   subtotalMinor: bigint("subtotal_minor", { mode: "number" }).notNull().default(0),
   depositMinor: bigint("deposit_minor", { mode: "number" }),
   notes: text("notes"),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [
   uniqueIndex("orders_workspace_number_unique").on(t.workspaceId, t.orderNumber),
   index("orders_workspace_status_created_idx").on(t.workspaceId, t.status, t.createdAt)
@@ -186,7 +193,8 @@ export const orderItems = pgTable("order_items", {
   quantity: integer("quantity").notNull(),
   unitPriceMinor: bigint("unit_price_minor", { mode: "number" }).notNull(),
   productionStage: varchar("production_stage", { length: 60 }),
-  ...timestamps
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [check("order_items_quantity_positive", sql`${t.quantity} > 0`)]);
 
 export const auditLogs = pgTable("audit_logs", {
