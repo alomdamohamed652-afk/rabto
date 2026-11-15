@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const capabilities = [
   {
     number: "01",
@@ -33,10 +35,10 @@ export default function HomePage() {
   return (
     <main className="site-shell">
       <nav className="topbar" aria-label="التنقل الرئيسي">
-        <a className="brand" href="/" aria-label="RABTO الصفحة الرئيسية">
+        <Link className="brand" href="/" aria-label="RABTO الصفحة الرئيسية">
           <BrandMark />
           <span className="wordmark">RABTO</span>
-        </a>
+        </Link>
         <div className="nav-links">
           <a href="#how">كيف يعمل</a>
           <a href="#features">المميزات</a>
@@ -133,14 +135,14 @@ export default function HomePage() {
       <section className="closing-cta">
         <div className="cta-orbit cta-orbit-one" />
         <div className="cta-orbit cta-orbit-two" />
-        <p className="eyebrow">LET'S CONNECT</p>
+        <p className="eyebrow">LET&apos;s CONNECT</p>
         <h2>منتجك يستحق<br /><em>تجربة متصلة.</em></h2>
         <p>خلّينا نبدأ حوار عن الطريقة المناسبة لربط منتجاتك بالعالم الرقمي.</p>
         <a className="cta-button" href="mailto:hello@rabtolink.com">تواصل مع RABTO <span aria-hidden="true">↗</span></a>
       </section>
 
       <footer className="footer">
-        <a className="brand" href="/" aria-label="RABTO الصفحة الرئيسية"><BrandMark /><span className="wordmark">RABTO</span></a>
+        <Link className="brand" href="/" aria-label="RABTO الصفحة الرئيسية"><BrandMark /><span className="wordmark">RABTO</span></Link>
         <p>اربط منتجك بتجربة تتطور معاه.</p>
         <small>© {new Date().getFullYear()} RABTO. جميع الحقوق محفوظة.</small>
       </footer>
