@@ -1,8 +1,14 @@
 import "server-only";
 import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
 
-const scrypt = promisify(scryptCallback);
+function scrypt(password: string, salt: Buffer, keyLength: number, options: { N: number; r: number; p: number; maxmem: number }): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scryptCallback(password, salt, keyLength, options, (error, derivedKey) => {
+      if (error) reject(error);
+      else resolve(derivedKey as Buffer);
+    });
+  });
+}
 const SESSION_COOKIE = "rabto_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 
@@ -19,7 +25,7 @@ export async function hashPassword(password: string): Promise<string> {
     throw new Error("Password must be between 12 and 128 characters.");
   }
   const salt = randomBytes(16);
-  const derived = await scrypt(password, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }) as Buffer;
+  const derived = await scrypt(password, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
   return `scrypt$16384$8$1$${salt.toString("base64url")}$${derived.toString("base64url")}`;
 }
 
@@ -31,7 +37,7 @@ export async function verifyPassword(password: string, encoded: string | null): 
     const salt = Buffer.from(parts[4], "base64url");
     const expected = Buffer.from(parts[5], "base64url");
     if (salt.length !== 16 || expected.length !== 64) return false;
-    const actual = await scrypt(password, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }) as Buffer;
+    const actual = await scrypt(password, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
     return timingSafeEqual(actual, expected);
   } catch {
     return false;
