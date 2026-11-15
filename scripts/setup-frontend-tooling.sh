@@ -9,6 +9,7 @@ if [[ ! -f package.json ]]; then
 fi
 command -v git >/dev/null 2>&1 || { echo "Git is required." >&2; exit 1; }
 command -v npm >/dev/null 2>&1 || { echo "Node.js/npm is required." >&2; exit 1; }
+PROJECT_ROOT="$(pwd)"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
@@ -26,6 +27,9 @@ cd "$TMP_DIR/design-workbench-skills"
 
 echo
 echo "Installed the design-workbench skill pack."
+
+# Return to RABTO so the project-scoped UI/UX Pro Max skill is installed here.
+cd "$PROJECT_ROOT"
 
 # Install the official UI/UX Pro Max design-intelligence skill for the
 # universal Agent Skills directory used by Codex-compatible agents.
