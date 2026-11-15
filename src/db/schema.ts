@@ -18,7 +18,8 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 320 }).notNull(),
   passwordHash: text("password_hash"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
-  createdAt: createdAt(),\n  updatedAt: updatedAt()
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
 }, (t) => [uniqueIndex("users_email_unique").on(sql`lower(${t.email})`)]);
 
 export const workspaces = pgTable("workspaces", {
