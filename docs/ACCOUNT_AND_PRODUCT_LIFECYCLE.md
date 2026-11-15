@@ -33,3 +33,8 @@
 - It returns raw activation secrets exactly once to the trusted provisioning caller. Never log or persist those raw values.
 - It does not create an HTTP endpoint or replace session authentication. A future admin route must authenticate the session before calling it.
 - Product codes remain inactive until the separate claim/activation flow completes; scans before activation resolve to unavailable.
+
+## Customer dashboard read model
+- `listWorkspaceProductsForMember` scopes the product listing through the signed-in user workspace membership and returns product metadata, channel public codes, activation status, and channel credit balances.
+- It deliberately excludes activation-secret hashes and internal ledger details.
+- The user ID must come from the authenticated server session. Do not expose this function through a route that trusts a browser-supplied user ID.
