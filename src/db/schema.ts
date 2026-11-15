@@ -7,6 +7,7 @@ import { sql } from "drizzle-orm";
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = () => timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
 
+export const platformRole = pgEnum("platform_role", ["admin", "customer"]);
 export const workspaceRole = pgEnum("workspace_role", ["owner", "admin", "member"]);
 export const productStatus = pgEnum("product_status", ["draft", "produced", "claimed", "archived"]);
 export const channelType = pgEnum("channel_type", ["nfc", "qr"]);
@@ -17,6 +18,7 @@ export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: varchar("email", { length: 320 }).notNull(),
   passwordHash: text("password_hash"),
+  platformRole: platformRole("platform_role").notNull().default("customer"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt()
