@@ -83,3 +83,19 @@ The Playwright browser may need to be installed once per development environment
 ## Current UI scope and limitations
 
 The repository currently contains a public landing page only. Customer/admin dashboards, authentication screens, and their workflows are not yet implemented. The visual system must therefore be applied to those screens as they are built; do not claim to have redesigned screens that do not exist yet.
+
+
+## Additional five-skill pack from the supplied reference image
+
+The five names in the second reference image correspond to the focused skills in the maintained [Design Workbench Skills pack](https://github.com/arthurmi681/design-workbench-skills), plus its orchestrator:
+
+- Taste Skill → `design-taste-frontend`
+- Web Design Guidelines → `web-design-guidelines`
+- Awesome Design → `awesome-design-md` (84 DESIGN.md references)
+- Image to Code → `image-to-code` (includes its helper kit and upstream license)
+- Playwright CLI → official `@playwright/cli` and its agent skill
+- Additional orchestrator → `design-workbench`
+
+Use `scripts/setup-frontend-tooling.sh` to clone and validate the upstream pack, then run its installer with `--no-browser`. This installs skills into the local agent skills directory (default `~/.agents/skills`) and installs the Playwright CLI globally. It intentionally skips the Chrome browser download. To enable browser-driven checks afterward, run `playwright-cli install-browser chrome` in the local development environment.
+
+The upstream installer backs up existing same-named skill folders before replacing them and includes an uninstall/restore path. The setup script is a local developer-machine operation; committing it to GitHub does not execute it on the user's machine or install skills into ChatGPT itself. Review `THIRD_PARTY_NOTICES.md` in the upstream pack for component-specific licenses. The pack's DESIGN.md examples are references only; RABTO's approved identity remains authoritative.
