@@ -4,10 +4,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-const timestamps = {
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow()
-};
+const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
+const updatedAt = () => timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
 
 export const workspaceRole = pgEnum("workspace_role", ["owner", "admin", "member"]);
 export const productStatus = pgEnum("product_status", ["draft", "produced", "claimed", "archived"]);
@@ -20,7 +18,7 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 320 }).notNull(),
   passwordHash: text("password_hash"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
-  ...timestamps
+  createdAt: createdAt(),\n  updatedAt: updatedAt()
 }, (t) => [uniqueIndex("users_email_unique").on(sql`lower(${t.email})`)]);
 
 export const workspaces = pgTable("workspaces", {
@@ -35,7 +33,7 @@ export const workspaceMembers = pgTable("workspace_members", {
   workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: workspaceRole("role").notNull().default("member"),
-  createdAt: timestamps.createdAt
+  createdAt: createdAt()
 }, (t) => [
   uniqueIndex("workspace_members_workspace_user_unique").on(t.workspaceId, t.userId),
   index("workspace_members_user_idx").on(t.userId)
@@ -122,7 +120,7 @@ export const linkDestinations = pgTable("link_destinations", {
   productCodeId: uuid("product_code_id").notNull().references(() => productCodes.id, { onDelete: "cascade" }),
   currentUrl: text("current_url").notNull(),
   version: integer("version").notNull().default(1),
-  updatedAt: timestamps.updatedAt
+  updatedAt: updatedAt()
 }, (t) => [
   uniqueIndex("link_destinations_code_unique").on(t.productCodeId),
   check("link_destinations_version_positive", sql`${t.version} > 0`)
