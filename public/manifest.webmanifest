@@ -1,0 +1,11 @@
+{
+  "name": "RABTO",
+  "short_name": "RABTO",
+  "description": "Connect physical products to digital experiences.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f4ee",
+  "theme_color": "#f5f4ee"
+}
