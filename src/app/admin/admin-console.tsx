@@ -37,8 +37,8 @@ export default function AdminConsole() {
     const data = await response.json() as { customers?: Customer[]; error?: string };
     if (!response.ok) throw new Error(data.error || "تعذر تحميل العملاء.");
     setCustomers(data.customers || []);
-    if (!selectedWorkspace && data.customers?.[0]) setSelectedWorkspace(data.customers[0].workspaceId);
-  }, [selectedWorkspace]);
+    if (data.customers?.[0]) setSelectedWorkspace((current) => current || data.customers![0].workspaceId);
+  }, []);
 
   const loadTypes = useCallback(async () => {
     if (!selectedWorkspace) { setTypes([]); return; }
