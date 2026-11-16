@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
-  const response = NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true, role: user.platformRole });
   response.headers.append("Set-Cookie", sessionCookie(createSessionToken(user.id)));
   return response;
 }
