@@ -94,7 +94,7 @@ export default function AdminConsole() {
     finally { setBusy(false); }
   }
 
-  function copy(value: string) {
+  async function logout() {\n    await fetch("/api/auth/logout", { method: "POST" });\n    window.location.assign("/login");\n  }\n\n  function copy(value: string) {
     void navigator.clipboard.writeText(value).then(() => setNotice("تم النسخ."));
   }
 
@@ -109,7 +109,7 @@ export default function AdminConsole() {
         <div className="sidebar-bottom"><span className="status-dot" /> المنصة جاهزة للإدارة</div>
       </aside>
       <section className="admin-main">
-        <header className="admin-header"><div><p className="eyebrow">RABTO / CONTROL CENTER</p><h1>إدارة المنصة</h1><p>إدارة العملاء وتجهيز المنتجات والأكواد من مكان واحد.</p></div><a className="admin-logout" href="/api/auth/logout">تسجيل الخروج ↗</a></header>
+        <header className="admin-header"><div><p className="eyebrow">RABTO / CONTROL CENTER</p><h1>إدارة المنصة</h1><p>إدارة العملاء وتجهيز المنتجات والأكواد من مكان واحد.</p></div><button className="admin-logout" type="button" onClick={logout}>تسجيل الخروج ↗</button></header>
         <section className="admin-stats" id="overview">
           <article><span>مساحات العمل</span><strong>{customers.length}</strong><small>مساحات العملاء المسجلة</small></article>
           <article><span>أنواع المنتجات</span><strong>{types.length}</strong><small>للعميل المحدد</small></article>
