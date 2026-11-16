@@ -12,7 +12,7 @@ export default async function CustomerPage() {
   if (!actor) redirect("/login");
   if (actor.platformRole === "admin") redirect("/admin");
   const db = getDb();
-  const memberships = await db.select({
+  const [user] = await db.select({ email: users.email }).from(users).where(eq(users.id, actor.userId)).limit(1);\n  const memberships = await db.select({
     workspaceId: workspaces.id,
     workspaceName: workspaces.name,
     workspaceSlug: workspaces.slug,
@@ -21,5 +21,5 @@ export default async function CustomerPage() {
     .innerJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
     .where(eq(workspaceMembers.userId, actor.userId))
     .orderBy(asc(workspaces.name));
-  return <CustomerConsole email={actor.userId} workspaces={memberships} />;
+  return <CustomerConsole email={user?.email ?? ""} workspaces={memberships} />;
 }
