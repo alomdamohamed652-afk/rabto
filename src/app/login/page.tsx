@@ -21,9 +21,9 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = await response.json() as { error?: string };
+      const data = await response.json() as { error?: string; role?: string };
       if (!response.ok) throw new Error(data.error || "تعذر تسجيل الدخول.");
-      router.replace("/admin");
+      router.replace(data.role === "admin" ? "/admin" : "/app");
       router.refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "حدث خطأ غير متوقع.");
