@@ -12,7 +12,9 @@ export default async function CustomerPage() {
   if (!actor) redirect("/login");
   if (actor.platformRole === "admin") redirect("/admin");
   const db = getDb();
-  const [user] = await db.select({ email: users.email }).from(users).where(eq(users.id, actor.userId)).limit(1);\n  const memberships = await db.select({
+  const [user] = await db.select({ email: users.email })
+    .from(users).where(eq(users.id, actor.userId)).limit(1);
+  const memberships = await db.select({
     workspaceId: workspaces.id,
     workspaceName: workspaces.name,
     workspaceSlug: workspaces.slug,
