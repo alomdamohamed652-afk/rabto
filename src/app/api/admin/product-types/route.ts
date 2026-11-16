@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { productTypes, workspaces, users } from "@/db/schema";
+import { productTypes, workspaces } from "@/db/schema";
 import { readSessionCookie } from "@/lib/auth";
 import { requirePlatformAdmin } from "@/lib/access-control";
 
