@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const db = getDb();
   const [user] = await db.select({
     id: users.id,
-    passwordHash: users.passwordHash,
+    passwordHash: users.passwordHash,\n    platformRole: users.platformRole,
   }).from(users).where(sql`lower(${users.email}) = ${email}`).limit(1);
 
   // Perform a password verification even when the account does not exist to
