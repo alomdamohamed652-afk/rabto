@@ -31,3 +31,8 @@ test("rejects invalid chunk sizes", () => {
 test("supports a one-row batch size", () => {
   assert.deepEqual(chunkRows(["a", "b", "c"], 1), [["a"], ["b"], ["c"]]);
 });
+
+test("uses the default chunk size when splitting a full-size workload", () => {
+  const rows = Array.from({ length: 501 }, (_, index) => index);
+  assert.deepEqual(chunkRows(rows).map((chunk) => chunk.length), [250, 250, 1]);
+});
