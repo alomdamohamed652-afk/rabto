@@ -23,9 +23,13 @@ jobs:
         run: npm install
       - name: Tests
         run: npm test
+      - name: Focused lint for provisioning changes
+        run: npx eslint src/lib/provisioning.ts src/lib/provisioning-batches.mjs src/lib/provisioning-batches.d.mts tests/provisioning-batches.test.mjs
       - name: Lint
         run: npm run lint
       - name: Typecheck
+        if: always()
         run: npm run typecheck
       - name: Production build
+        if: always()
         run: npm run build
