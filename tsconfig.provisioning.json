@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/lib/provisioning.ts",
+    "src/lib/provisioning-batches.d.mts"
+  ],
+  "exclude": ["node_modules"]
+}
