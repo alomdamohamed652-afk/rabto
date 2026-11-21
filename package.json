@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "test": "node --test",
+    "typecheck:provisioning": "tsc --noEmit -p tsconfig.provisioning.json"
   },
   "dependencies": {
     "next": "^16.4.6",
