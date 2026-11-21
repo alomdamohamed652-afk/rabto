@@ -8,6 +8,7 @@ import {
 } from "@/db/schema";
 import { generateActivationSecret, generatePublicCode, hashActivationSecret } from "@/lib/codes";
 import { parseResolverDestination } from "@/lib/resolver";
+import { chunkRows } from "@/lib/provisioning-batches.mjs";
 
 export type ProvisionProductBatchInput = {
   actorUserId: string;
@@ -67,43 +68,80 @@ export async function provisionProductBatch(input: ProvisionProductBatchInput) {
       quantity: input.quantity,
     }).returning({ id: productBatches.id });
 
+    // Prepare all related rows with explicit IDs so bulk inserts can preserve
+    // the exact product -> channel -> destination/version/account relationships.
+    // The generated activation secret is returned once; only its hash is stored.
+    const productRows = [];
+    const codeRows = [];
+    const destinationRows = [];
+    const versionRows = [];
+    const creditAccountRows = [];
     const issuedCodes: ProvisionedCode[] = [];
+    const initialDestinationUrl = destination.toString();
+    const changeReason = input.changeReason ?? "Initial destination during product provisioning";
+
     for (let index = 0; index < input.quantity; index += 1) {
       const serial = randomUUID();
       const suffix = serial.replaceAll("-", "").slice(0, 12).toUpperCase();
-      const [product] = await tx.insert(products).values({
+      const productId = randomUUID();
+
+      productRows.push({
+        id: productId,
         workspaceId: input.workspaceId,
         productTypeId: input.productTypeId,
         batchId: batch.id,
         sku: `${type.prefix}-${suffix}`,
         serialNumber: serial,
-        status: "produced",
-      }).returning({ id: products.id });
+        status: "produced" as const,
+      });
 
       for (const channel of ["qr", "nfc"] as const) {
+        const productCodeId = randomUUID();
+        const linkDestinationId = randomUUID();
         const publicCode = generatePublicCode();
         const activationSecret = generateActivationSecret();
-        const [code] = await tx.insert(productCodes).values({
-          productId: product.id,
+
+        codeRows.push({
+          id: productCodeId,
+          productId,
           channel,
           publicCode,
           activationSecretHash: hashActivationSecret(activationSecret),
-        }).returning({ id: productCodes.id });
-        const [link] = await tx.insert(linkDestinations).values({
-          productCodeId: code.id,
-          currentUrl: destination.toString(),
-          version: 1,
-        }).returning({ id: linkDestinations.id });
-        await tx.insert(linkVersions).values({
-          linkDestinationId: link.id,
-          version: 1,
-          destinationUrl: destination.toString(),
-          changedByUserId: input.actorUserId,
-          changeReason: input.changeReason ?? "Initial destination during product provisioning",
         });
-        await tx.insert(creditAccounts).values({ productId: product.id, channel, balance: 0 });
-        issuedCodes.push({ productId: product.id, channel, publicCode, activationSecret });
+        destinationRows.push({
+          id: linkDestinationId,
+          productCodeId,
+          currentUrl: initialDestinationUrl,
+          version: 1,
+        });
+        versionRows.push({
+          linkDestinationId,
+          version: 1,
+          destinationUrl: initialDestinationUrl,
+          changedByUserId: input.actorUserId,
+          changeReason,
+        });
+        creditAccountRows.push({ productId, channel, balance: 0 });
+        issuedCodes.push({ productId, channel, publicCode, activationSecret });
       }
+    }
+
+    // Keep every write in the existing transaction. Chunking bounds SQL
+    // statement size while reducing round trips from one insert per row.
+    for (const rows of chunkRows(productRows)) {
+      await tx.insert(products).values(rows);
+    }
+    for (const rows of chunkRows(codeRows)) {
+      await tx.insert(productCodes).values(rows);
+    }
+    for (const rows of chunkRows(destinationRows)) {
+      await tx.insert(linkDestinations).values(rows);
+    }
+    for (const rows of chunkRows(versionRows)) {
+      await tx.insert(linkVersions).values(rows);
+    }
+    for (const rows of chunkRows(creditAccountRows)) {
+      await tx.insert(creditAccounts).values(rows);
     }
 
     await tx.insert(auditLogs).values({
