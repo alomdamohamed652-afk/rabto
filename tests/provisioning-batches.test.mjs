@@ -27,3 +27,7 @@ test("rejects invalid chunk sizes", () => {
   assert.throws(() => chunkRows([1], -1), RangeError);
   assert.throws(() => chunkRows([1], 1.5), RangeError);
 });
+
+test("supports a one-row batch size", () => {
+  assert.deepEqual(chunkRows(["a", "b", "c"], 1), [["a"], ["b"], ["c"]]);
+});
