@@ -27,6 +27,8 @@ jobs:
         run: npx eslint src/lib/provisioning.ts src/lib/provisioning-batches.mjs src/lib/provisioning-batches.d.mts tests/provisioning-batches.test.mjs
       - name: Lint
         run: npm run lint
+      - name: Focused provisioning typecheck
+        run: npm run typecheck:provisioning
       - name: Typecheck
         if: always()
         run: npm run typecheck
