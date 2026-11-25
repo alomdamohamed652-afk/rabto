@@ -39,3 +39,13 @@ export function progressiveAccountDelayMs(failedCount, trustedIp = false) {
   const level = Math.min(7, Math.floor((failedCount - 101) / 10));
   return Math.min(30_000, 250 * (2 ** level));
 }
+
+export function isRateLimitLocked(lockedUntil, now = Date.now()) {
+  return lockedUntil instanceof Date && lockedUntil.getTime() > now;
+}
+export function isFixedWindowExpired(windowStart, now, windowMs) {
+  return now >= windowStart + windowMs;
+}
+export function successfulLoginResetTargets(emailIpKey) {
+  return emailIpKey ? [emailIpKey] : [];
+}

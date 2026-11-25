@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { sessionCookie, createSessionToken, verifyPassword } from "@/lib/auth";
-import { clientIpFromForwardedFor, progressiveAccountDelayMs, rateLimitHash } from "@/lib/security-primitives.mjs";
+import { clientIpFromForwardedFor, progressiveAccountDelayMs, rateLimitHash, successfulLoginResetTargets } from "@/lib/security-primitives.mjs";
 import { activeLock, clearRateLimitKey, isTrustedLoginIp, readRateLimitRows, recordRateLimitFailure, rememberSuccessfulLoginIp, type RateLimitKey } from "@/lib/persistent-rate-limit";
 
 export const runtime = "nodejs";
@@ -42,11 +42,11 @@ export async function POST(request: Request) {
     await Promise.all([
       pairKey ? recordRateLimitFailure(db, pairKey, 10, WINDOW_15M) : Promise.resolve(),
       ipKey ? recordRateLimitFailure(db, ipKey, 50, WINDOW_15M) : Promise.resolve(),
-      recordRateLimitFailure(db, accountKey, 100, WINDOW_1H),
+      recordRateLimitFailure(db, accountKey, 100, WINDOW_1H, false),
     ]);
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
-  if (pairKey) await clearRateLimitKey(db, pairKey);
+  for (const resetKey of successfulLoginResetTargets(pairKey)) await clearRateLimitKey(db, resetKey);
   if (ipHash) await rememberSuccessfulLoginIp(db, accountHash, ipHash);
   const response = NextResponse.json({ success: true, role: user.platformRole });
   response.headers.append("Set-Cookie", sessionCookie(createSessionToken(user.id)));

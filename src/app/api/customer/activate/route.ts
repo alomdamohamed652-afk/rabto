@@ -20,6 +20,10 @@ export async function POST(request: Request) {
       body.workspaceId.length > 64 || body.publicCode.length < 6 || body.publicCode.length > 32 ||
       body.activationSecret.length < 16 || body.activationSecret.length > 128) return NextResponse.json(NOT_FOUND, { status: 404 });
 
+  const workspaceId = body.workspaceId;
+  const publicCode = body.publicCode;
+  const activationSecret = body.activationSecret;
+
   try {
     const db = getDb();
     const ip = clientIpFromForwardedFor(request.headers.get("x-forwarded-for"), process.env.TRUSTED_PROXY_HOPS);
@@ -33,15 +37,15 @@ export async function POST(request: Request) {
       const [candidate] = await tx.select({ productId: products.id, activationSecretHash: productCodes.activationSecretHash, activatedAt: productCodes.activatedAt })
         .from(workspaceMembers).innerJoin(products, eq(products.workspaceId, workspaceMembers.workspaceId))
         .innerJoin(productCodes, eq(productCodes.productId, products.id))
-        .where(and(eq(workspaceMembers.userId, userId), eq(workspaceMembers.workspaceId, body.workspaceId), eq(productCodes.publicCode, body.publicCode))).limit(1);
-      if (!candidate || !constantTimeHexEqual(candidate.activationSecretHash, body.activationSecret)) return { kind: "not-found" as const };
+        .where(and(eq(workspaceMembers.userId, userId), eq(workspaceMembers.workspaceId, workspaceId), eq(productCodes.publicCode, publicCode))).limit(1);
+      if (!candidate || !constantTimeHexEqual(candidate.activationSecretHash, activationSecret)) return { kind: "not-found" as const };
       if (candidate.activatedAt) return { kind: "conflict" as const };
       const activated = await tx.update(productCodes).set({ activatedAt: new Date(), updatedAt: new Date() })
         .where(and(eq(productCodes.productId, candidate.productId), isNull(productCodes.activatedAt))).returning({ id: productCodes.id });
       if (!activated.length) return { kind: "conflict" as const };
-      await tx.insert(productClaims).values({ productId: candidate.productId, workspaceId: body.workspaceId, claimedByUserId: userId });
+      await tx.insert(productClaims).values({ productId: candidate.productId, workspaceId, claimedByUserId: userId });
       await tx.update(products).set({ status: "claimed", updatedAt: new Date() }).where(eq(products.id, candidate.productId));
-      await tx.insert(auditLogs).values({ workspaceId: body.workspaceId, actorUserId: userId, action: "product.activated", entityType: "product", entityId: candidate.productId, details: { activatedVia: body.publicCode, activatedCodeCount: activated.length } });
+      await tx.insert(auditLogs).values({ workspaceId, actorUserId: userId, action: "product.activated", entityType: "product", entityId: candidate.productId, details: { activatedVia: publicCode, activatedCodeCount: activated.length } });
       return { kind: "activated" as const, productId: candidate.productId };
     });
     if (result.kind === "not-found") {

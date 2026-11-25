@@ -14,7 +14,7 @@ export function activeLock(rows: Array<{ lockedUntil: Date | null }>, now = Date
   const until = rows.reduce((max, row) => Math.max(max, row.lockedUntil?.getTime() ?? 0), 0);
   return until > now ? { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((until - now) / 1000)) } : { allowed: true, retryAfterSeconds: 0 };
 }
-export async function recordRateLimitFailure(db: Database, key: RateLimitKey, limit: number, windowSeconds: number) {
+export async function recordRateLimitFailure(db: Database, key: RateLimitKey, limit: number, windowSeconds: number, lockAtLimit = true) {
   const expired = sql`${loginAttempts.windowStart} <= now() - make_interval(secs => ${windowSeconds})`;
   const [row] = await db.insert(loginAttempts).values({
     keyType: key.keyType, keyHash: key.keyHash, failedCount: 1, windowStart: new Date(), lockedUntil: null,
@@ -23,7 +23,7 @@ export async function recordRateLimitFailure(db: Database, key: RateLimitKey, li
     set: {
       failedCount: sql`CASE WHEN ${expired} THEN 1 ELSE ${loginAttempts.failedCount} + 1 END`,
       windowStart: sql`CASE WHEN ${expired} THEN now() ELSE ${loginAttempts.windowStart} END`,
-      lockedUntil: sql`CASE WHEN ${expired} THEN NULL WHEN ${loginAttempts.failedCount} + 1 >= ${limit} THEN ${loginAttempts.windowStart} + make_interval(secs => ${windowSeconds}) ELSE ${loginAttempts.lockedUntil} END`,
+      lockedUntil: sql`CASE WHEN ${expired} THEN NULL WHEN ${lockAtLimit} AND ${loginAttempts.failedCount} + 1 >= ${limit} THEN ${loginAttempts.windowStart} + make_interval(secs => ${windowSeconds}) ELSE ${loginAttempts.lockedUntil} END`,
       updatedAt: sql`now()`,
     },
   }).returning();
