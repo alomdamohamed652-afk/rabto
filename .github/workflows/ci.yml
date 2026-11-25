@@ -1,8 +1,5 @@
 name: CI
 
-permissions:
-  contents: write
-
 on:
   push:
     branches:
@@ -24,16 +21,6 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
-      - name: Generate database migrations and lockfile
-        run: npm run db:generate
-      - name: Upload generated database artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: rabto-db-bootstrap
-          path: |
-            package-lock.json
-            drizzle/
-          if-no-files-found: error
       - name: Tests
         run: npm test
       - name: Focused lint for provisioning changes
@@ -48,15 +35,3 @@ jobs:
       - name: Production build
         if: always()
         run: npm run build
-      - name: Commit generated package lock and Drizzle migrations
-        if: success()
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json drizzle/
-          if git diff --cached --quiet; then
-            echo "No generated database artifacts to commit."
-            exit 0
-          fi
-          git commit -m "chore: add npm lockfile and initial Drizzle migration"
-          git push origin HEAD:foundation/activation-flow
