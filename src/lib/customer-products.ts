@@ -55,6 +55,7 @@ export async function listWorkspaceProductsForMember(userId: string, workspaceId
       products.status,
       products.productionStage,
       productTypes.name,
+      products.createdAt,
     )
     .orderBy(asc(products.createdAt))
     .limit(5000);
