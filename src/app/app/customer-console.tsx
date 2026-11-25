@@ -21,7 +21,11 @@ const WORKSPACE_ROLE_LABELS: Record<Workspace["role"], string> = {
   owner: "مالك", admin: "مدير", member: "عضو",
 };
 const PRODUCT_PAGE_SIZE = 24;
-const resolverBaseUrl = process.env.NEXT_PUBLIC_RESOLVER_BASE_URL?.trim().replace(/\\/+$/, "") || "";
+const resolverBaseUrl = (() => {
+  let value = process.env.NEXT_PUBLIC_RESOLVER_BASE_URL?.trim() || "";
+  while (value.endsWith("/")) value = value.slice(0, -1);
+  return value;
+})();
 
 function productResolverUrl(publicCode: string) {
   if (!resolverBaseUrl) return `/d/${encodeURIComponent(publicCode)}`;
