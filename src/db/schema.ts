@@ -224,3 +224,28 @@ export const customerInvitations = pgTable("customer_invitations", {
   index("customer_invitations_user_created_idx").on(t.userId, t.createdAt),
   index("customer_invitations_expiry_idx").on(t.expiresAt)
 ]);
+
+export const loginAttempts = pgTable("login_attempts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  keyType: varchar("key_type", { length: 40 }).notNull(),
+  keyHash: varchar("key_hash", { length: 64 }).notNull(),
+  failedCount: integer("failed_count").notNull().default(0),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull().defaultNow(),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [
+  uniqueIndex("login_attempts_key_unique").on(t.keyType, t.keyHash),
+  index("login_attempts_updated_idx").on(t.updatedAt),
+  check("login_attempts_failed_count_nonnegative", sql`${t.failedCount} >= 0`),
+]);
+export const trustedLoginIps = pgTable("trusted_login_ips", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  accountHash: varchar("account_hash", { length: 64 }).notNull(),
+  ipHash: varchar("ip_hash", { length: 64 }).notNull(),
+  lastSuccessAt: timestamp("last_success_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("trusted_login_ips_account_ip_unique").on(t.accountHash, t.ipHash),
+  index("trusted_login_ips_last_success_idx").on(t.lastSuccessAt),
+  check("trusted_login_ips_hash_length", sql`length(${t.accountHash}) = 64 AND length(${t.ipHash}) = 64`),
+]);
