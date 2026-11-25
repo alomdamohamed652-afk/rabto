@@ -59,6 +59,11 @@ export async function POST(request: Request) {
     return NextResponse.json(NOT_FOUND, { status: 404 });
   }
 
+  // Preserve the validated string types across the transaction callback.
+  const workspaceId = body.workspaceId;
+  const publicCode = body.publicCode;
+  const activationSecret = body.activationSecret;
+
   try {
     const db = getDb();
     const [actor] = await db.select({ email: users.email })
@@ -83,8 +88,8 @@ export async function POST(request: Request) {
         .innerJoin(productCodes, eq(productCodes.productId, products.id))
         .where(and(
           eq(workspaceMembers.userId, userId),
-          eq(workspaceMembers.workspaceId, body.workspaceId),
-          eq(productCodes.publicCode, body.publicCode),
+          eq(workspaceMembers.workspaceId, workspaceId),
+          eq(productCodes.publicCode, publicCode),
         ))
         .limit(1);
 
@@ -92,7 +97,7 @@ export async function POST(request: Request) {
       // secret. This avoids disclosing code ownership across workspaces.
       if (!candidate || !constantTimeHexEqual(
         candidate.activationSecretHash,
-        body.activationSecret,
+        activationSecret,
       )) {
         return { kind: "not-found" as const };
       }
@@ -114,7 +119,7 @@ export async function POST(request: Request) {
 
       await tx.insert(productClaims).values({
         productId: candidate.productId,
-        workspaceId: body.workspaceId,
+        workspaceId,
         claimedByUserId: userId,
       });
 
@@ -123,13 +128,13 @@ export async function POST(request: Request) {
         .where(eq(products.id, candidate.productId));
 
       await tx.insert(auditLogs).values({
-        workspaceId: body.workspaceId,
+        workspaceId,
         actorUserId: userId,
         action: "product.activated",
         entityType: "product",
         entityId: candidate.productId,
         details: {
-          activatedVia: body.publicCode,
+          activatedVia: publicCode,
           activatedCodeCount: activated.length,
         },
       });
