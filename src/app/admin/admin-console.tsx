@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -12,6 +14,7 @@ type InvitationResult = { invitation: { url: string; expiresAt: string } };
 type ProvisionResult = { batchId: string; quantity: number; codes: { productId: string; channel: "qr" | "nfc"; publicCode: string; activationSecret: string }[] };
 
 export default function AdminConsole() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState("");
   const [types, setTypes] = useState<ProductType[]>([]);
@@ -97,7 +100,7 @@ export default function AdminConsole() {
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.assign("/login");
+    router.push("/login");
   }
 
   function copy(value: string) {
@@ -107,7 +110,7 @@ export default function AdminConsole() {
   return (
     <main className="admin-shell" dir="rtl">
       <aside className="admin-sidebar">
-        <a className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></a>
+        <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
         <p className="sidebar-label">إدارة المنصة</p>
         <a className="sidebar-link active" href="#overview">نظرة عامة</a>
         <a className="sidebar-link" href="#customers">العملاء ومساحات العمل</a>

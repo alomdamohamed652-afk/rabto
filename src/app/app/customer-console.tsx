@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Workspace = { workspaceId: string; workspaceName: string; workspaceSlug: string; role: "owner" | "admin" | "member" };
@@ -10,6 +12,7 @@ type Product = {
 };
 
 export default function CustomerConsole({ email, workspaces }: { email: string; workspaces: Workspace[] }) {
+  const router = useRouter();
   const [workspaceId, setWorkspaceId] = useState(workspaces[0]?.workspaceId || "");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,12 +41,12 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.assign("/login");
+    router.push("/login");
   }
 
   return <main className="admin-shell customer-shell" dir="rtl">
     <aside className="admin-sidebar">
-      <a className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></a>
+      <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
       <p className="sidebar-label">مساحة العميل</p>
       <a className="sidebar-link active" href="#products">منتجاتي</a>
       <a className="sidebar-link" href="#workspace">مساحة العمل</a>
