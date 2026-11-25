@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readSessionCookie } from "@/lib/auth";
 import { requirePlatformAdmin } from "@/lib/access-control";
 import { provisionProductBatch } from "@/lib/provisioning";
+import { httpStatusForError } from "@/lib/security-primitives.mjs";
 
 export const runtime = "nodejs";
 
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to provision batch.";
-    const status = /required|must be|not found|not belong|administrator access/.test(message) ? 400 : 500;
+    const status = httpStatusForError(error);
     return NextResponse.json({ error: message }, { status });
   }
 }

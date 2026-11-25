@@ -4,6 +4,7 @@ import { getDb } from "@/db";
 import { productTypes, workspaces } from "@/db/schema";
 import { readSessionCookie } from "@/lib/auth";
 import { requirePlatformAdmin } from "@/lib/access-control";
+import { httpStatusForError } from "@/lib/security-primitives.mjs";
 
 export const runtime = "nodejs";
 

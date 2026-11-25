@@ -11,3 +11,11 @@ export function constantTimeHexEqual(expectedHex, suppliedValue) {
   }
   return timingSafeEqual(expected, actual);
 }
+
+export function httpStatusForError(error, fallback = 500) {
+  if (error && typeof error === "object" && "code" in error && error.code === "23505") return 409;
+  const message = error instanceof Error ? error.message : "";
+  if (/forbidden|administrator access|required platform administrator/i.test(message)) return 403;
+  if (/required|must be|not found|not belong|already exists|already in use|must contain/i.test(message)) return 400;
+  return fallback;
+}

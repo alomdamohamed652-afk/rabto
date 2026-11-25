@@ -6,6 +6,7 @@ import { readSessionCookie } from "@/lib/auth";
 import { requirePlatformAdmin } from "@/lib/access-control";
 import { createCustomerAccount } from "@/lib/customer-provisioning";
 import { createCustomerInvitation } from "@/lib/customer-invitations";
+import { httpStatusForError } from "@/lib/security-primitives.mjs";
 
 export const runtime = "nodejs";
 
@@ -33,8 +34,8 @@ export async function GET(request: Request) {
       .where(eq(users.platformRole, "customer"))
       .orderBy(asc(workspaces.name));
     return NextResponse.json({ customers: rows });
-  } catch {
-    return NextResponse.json({ error: "Unable to load customers." }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: "Unable to load customers." }, { status: httpStatusForError(error) });
   }
 }
 
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
     }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to create customer.";
-    const status = /already exists|already in use|required|must contain|must be/.test(message) ? 400 : 500;
+    const status = httpStatusForError(error);
     return NextResponse.json({ error: message }, { status });
   }
 }
