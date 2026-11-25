@@ -21,6 +21,16 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Generate database migrations and lockfile
+        run: npm run db:generate
+      - name: Upload generated database artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: rabto-db-bootstrap
+          path: |
+            package-lock.json
+            drizzle/
+          if-no-files-found: error
       - name: Tests
         run: npm test
       - name: Focused lint for provisioning changes
