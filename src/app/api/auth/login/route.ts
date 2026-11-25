@@ -7,13 +7,6 @@ import { checkRateLimit, clearRateLimit, recordRateLimitFailure } from "@/lib/se
 
 export const runtime = "nodejs";
 
-function clientIp(request: Request) {
-  const realIp = request.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
-  const forwarded = request.headers.get("x-forwarded-for");
-  return forwarded?.split(",").map((value) => value.trim()).filter(Boolean).at(-1) ?? "unknown";
-}
-
 function tooManyAttempts(retryAfterSeconds: number) {
   return NextResponse.json(
     { error: "Too many failed attempts. Try again later." },
@@ -35,7 +28,9 @@ export async function POST(request: Request) {
   }
 
   const email = body.email.trim().toLowerCase();
-  const key = `login:${email}:${clientIp(request)}`;
+  // Email-only key: never trust client-supplied forwarding headers for IP identity.
+  // The in-memory bucket is shared across IPs for this email on this instance.
+  const key = `login:${email}`;
   const limit = checkRateLimit(key);
   if (!limit.allowed) return tooManyAttempts(limit.retryAfterSeconds);
 

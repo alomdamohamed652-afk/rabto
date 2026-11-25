@@ -13,7 +13,13 @@ export function constantTimeHexEqual(expectedHex, suppliedValue) {
 }
 
 export function httpStatusForError(error, fallback = 500) {
-  if (error && typeof error === "object" && "code" in error && error.code === "23505") return 409;
+  // PostgreSQL drivers/wrappers may expose the constraint code on the
+  // original error or one of its causes (e.g. error.cause.code).
+  let current = error;
+  for (let depth = 0; depth < 5 && current && typeof current === "object"; depth += 1) {
+    if ("code" in current && current.code === "23505") return 409;
+    current = "cause" in current ? current.cause : null;
+  }
   const message = error instanceof Error ? error.message : "";
   if (/forbidden|administrator access|required platform administrator/i.test(message)) return 403;
   if (/required|must be|not found|not belong|already exists|already in use|must contain/i.test(message)) return 400;

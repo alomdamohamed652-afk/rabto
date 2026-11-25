@@ -21,13 +21,6 @@ export const runtime = "nodejs";
 
 const NOT_FOUND = { error: "Activation details are invalid." };
 
-function clientIp(request: Request) {
-  const realIp = request.headers.get("x-real-ip")?.trim();
-  if (realIp) return realIp;
-  const forwarded = request.headers.get("x-forwarded-for");
-  return forwarded?.split(",").map((value) => value.trim()).filter(Boolean).at(-1) ?? "unknown";
-}
-
 function tooManyAttempts(retryAfterSeconds: number) {
   return NextResponse.json(
     { error: "Too many failed attempts. Try again later." },
@@ -70,7 +63,9 @@ export async function POST(request: Request) {
       .from(users).where(eq(users.id, userId)).limit(1);
     if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const key = `activation:${actor.email.trim().toLowerCase()}:${clientIp(request)}`;
+    // Email-only key avoids spoofable forwarding headers; attempts share one bucket
+    // for this account across client IPs on this server instance.
+    const key = `activation:${actor.email.trim().toLowerCase()}`;
     const limit = checkRateLimit(key);
     if (!limit.allowed) return tooManyAttempts(limit.retryAfterSeconds);
 

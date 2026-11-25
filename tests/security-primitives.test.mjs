@@ -75,3 +75,9 @@ test("validation errors map to HTTP 400 and unknown errors keep the fallback", (
   assert.equal(httpStatusForError(new Error("Database unavailable.")), 500);
   assert.equal(httpStatusForError(new Error("Unexpected"), 503), 503);
 });
+
+
+test("nested PostgreSQL unique violations map to HTTP 409", () => {
+  assert.equal(httpStatusForError({ cause: { code: "23505" } }), 409);
+  assert.equal(httpStatusForError(new Error("insert failed", { cause: { code: "23505" } })), 409);
+});

@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Workspace = { workspaceId: string; workspaceName: string; workspaceSlug: string; role: "owner" | "admin" | "member" };
+type ProductCode = {
+  channel: "nfc" | "qr"; publicCode: string;
+  activatedAt: string | null; creditBalance: number | null;
+};
 type Product = {
   productId: string; sku: string; serialNumber: string; status: string;
-  productionStage: string | null; productTypeName: string; channel: "nfc" | "qr";
-  publicCode: string; activatedAt: string | null; creditBalance: number | null;
+  productionStage: string | null; productTypeName: string; codes: ProductCode[];
 };
 
 export default function CustomerConsole({ email, workspaces }: { email: string; workspaces: Workspace[] }) {
@@ -39,12 +42,6 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
     return () => { active = false; };
   }, [workspaceId]);
 
-  const grouped = new Map<string, Product[]>();
-  for (const product of products) {
-    const existing = grouped.get(product.productId) || [];
-    existing.push(product); grouped.set(product.productId, existing);
-  }
-
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
@@ -66,12 +63,11 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
           <span className="workspace-role">{workspaces.find((w) => w.workspaceId === workspaceId)?.role}</span>
         </section>
         <section className="admin-panel customer-products" id="products">
-          <div className="panel-heading"><div><span className="panel-kicker">YOUR PRODUCTS</span><h2>المنتجات والأكواد</h2><p>تابع حالة كل منتج وروابط NFC وQR الخاصة به.</p></div><strong className="products-count">{grouped.size}</strong></div>
-          {loading ? <p className="empty-state">جارٍ تحميل المنتجات...</p> : error ? <p className="admin-error">{error}</p> : grouped.size === 0 ? <p className="empty-state">لا توجد منتجات في مساحة العمل دي حتى الآن.</p> : <div className="customer-product-list">{Array.from(grouped.entries()).map(([id, channels]) => {
-            const product = channels[0];
-            return <article className="customer-product" key={id}>
+          <div className="panel-heading"><div><span className="panel-kicker">YOUR PRODUCTS</span><h2>المنتجات والأكواد</h2><p>تابع حالة كل منتج وروابط NFC وQR الخاصة به.</p></div><strong className="products-count">{products.length}</strong></div>
+          {loading ? <p className="empty-state">جارٍ تحميل المنتجات...</p> : error ? <p className="admin-error">{error}</p> : products.length === 0 ? <p className="empty-state">لا توجد منتجات في مساحة العمل دي حتى الآن.</p> : <div className="customer-product-list">{products.map((product) => {
+            return <article className="customer-product" key={product.productId}>
               <div className="product-summary"><span className="customer-avatar">R</span><div><strong>{product.productTypeName}</strong><small>{product.sku} · {product.serialNumber.slice(0,8)}</small></div><span className={product.status === "claimed" ? "product-status claimed" : "product-status"}>{product.status}</span></div>
-              <div className="channel-list">{channels.map((channel) => <div className="channel-row" key={channel.channel}><strong>{channel.channel.toUpperCase()}</strong><code>rabtolink.com/d/{channel.publicCode}</code><span>{channel.activatedAt ? "مفعّل" : "بانتظار التفعيل"}</span><small>{channel.creditBalance ?? 0} رصيد</small></div>)}</div>
+              <div className="channel-list">{product.codes.map((channel) => <div className="channel-row" key={channel.channel}><strong>{channel.channel.toUpperCase()}</strong><code>rabtolink.com/d/{channel.publicCode}</code><span>{channel.activatedAt ? "مفعّل" : "بانتظار التفعيل"}</span><small>{channel.creditBalance ?? 0} رصيد</small></div>)}</div>
             </article>;
           })}</div>}
         </section>
