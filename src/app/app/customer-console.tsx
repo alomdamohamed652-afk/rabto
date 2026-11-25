@@ -19,17 +19,23 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!workspaceId) { setProducts([]); return; }
     let active = true;
-    setLoading(true); setError("");
-    fetch(`/api/customer/products?workspaceId=${encodeURIComponent(workspaceId)}`, { cache: "no-store" })
-      .then(async (response) => {
+    async function loadProducts() {
+      await Promise.resolve();
+      if (!workspaceId) { if (active) setProducts([]); return; }
+      if (active) { setLoading(true); setError(""); }
+      try {
+        const response = await fetch(`/api/customer/products?workspaceId=${encodeURIComponent(workspaceId)}`, { cache: "no-store" });
         const data = await response.json() as { products?: Product[]; error?: string };
         if (!response.ok) throw new Error(data.error || "تعذر تحميل المنتجات.");
         if (active) setProducts(data.products || []);
-      })
-      .catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : "حدث خطأ."); })
-      .finally(() => { if (active) setLoading(false); });
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : "حدث خطأ.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void loadProducts();
     return () => { active = false; };
   }, [workspaceId]);
 

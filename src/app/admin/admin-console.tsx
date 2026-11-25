@@ -53,12 +53,33 @@ export default function AdminConsole() {
   }, [selectedWorkspace]);
 
   useEffect(() => {
-    loadCustomers().catch((cause) => setError(cause instanceof Error ? cause.message : "تعذر تحميل البيانات."))
-      .finally(() => setLoading(false));
+    let active = true;
+    async function initializeCustomers() {
+      await Promise.resolve();
+      try {
+        await loadCustomers();
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : "تعذر تحميل البيانات.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void initializeCustomers();
+    return () => { active = false; };
   }, [loadCustomers]);
 
   useEffect(() => {
-    loadTypes().catch((cause) => setError(cause instanceof Error ? cause.message : "تعذر تحميل أنواع المنتجات."));
+    let active = true;
+    async function initializeTypes() {
+      await Promise.resolve();
+      try {
+        await loadTypes();
+      } catch (cause) {
+        if (active) setError(cause instanceof Error ? cause.message : "تعذر تحميل أنواع المنتجات.");
+      }
+    }
+    void initializeTypes();
+    return () => { active = false; };
   }, [loadTypes]);
 
   async function submitCustomer(event: FormEvent<HTMLFormElement>) {
