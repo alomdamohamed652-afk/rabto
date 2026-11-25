@@ -6,14 +6,34 @@ import {
   productClaims,
   productCodes,
   products,
+  users,
   workspaceMembers,
 } from "@/db/schema";
 import { readSessionCookie } from "@/lib/auth";
-import { constantTimeHexEqual } from "@/lib/security-primitives.mjs";
+import {
+  checkRateLimit,
+  clearRateLimit,
+  constantTimeHexEqual,
+  recordRateLimitFailure,
+} from "@/lib/security-primitives.mjs";
 
 export const runtime = "nodejs";
 
 const NOT_FOUND = { error: "Activation details are invalid." };
+
+function clientIp(request: Request) {
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+  const forwarded = request.headers.get("x-forwarded-for");
+  return forwarded?.split(",").map((value) => value.trim()).filter(Boolean).at(-1) ?? "unknown";
+}
+
+function tooManyAttempts(retryAfterSeconds: number) {
+  return NextResponse.json(
+    { error: "Too many failed attempts. Try again later." },
+    { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
+  );
+}
 
 export async function POST(request: Request) {
   const userId = readSessionCookie(request.headers.get("cookie"));
@@ -41,6 +61,14 @@ export async function POST(request: Request) {
 
   try {
     const db = getDb();
+    const [actor] = await db.select({ email: users.email })
+      .from(users).where(eq(users.id, userId)).limit(1);
+    if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const key = `activation:${actor.email.trim().toLowerCase()}:${clientIp(request)}`;
+    const limit = checkRateLimit(key);
+    if (!limit.allowed) return tooManyAttempts(limit.retryAfterSeconds);
+
     const result = await db.transaction(async (tx) => {
       // Membership is derived from the signed-in session subject, never from
       // a client-supplied user or role. It is checked in this transaction.
@@ -109,8 +137,12 @@ export async function POST(request: Request) {
       return { kind: "activated" as const, productId: candidate.productId };
     });
 
-    if (result.kind === "not-found") return NextResponse.json(NOT_FOUND, { status: 404 });
+    if (result.kind === "not-found") {
+      recordRateLimitFailure(key);
+      return NextResponse.json(NOT_FOUND, { status: 404 });
+    }
     if (result.kind === "conflict") return NextResponse.json({ error: "Product is already activated." }, { status: 409 });
+    clearRateLimit(key);
     return NextResponse.json({ success: true, productId: result.productId }, { status: 200 });
   } catch (error) {
     console.error("RABTO product activation failed", error);
