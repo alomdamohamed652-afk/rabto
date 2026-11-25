@@ -35,8 +35,8 @@ export function rateLimitHash(value, secret = process.env.SESSION_SECRET) {
   return createHmac("sha256", secret).update(value, "utf8").digest("hex");
 }
 export function progressiveAccountDelayMs(failedCount, trustedIp = false) {
-  if (trustedIp || failedCount <= 100) return 0;
-  const level = Math.min(7, Math.floor((failedCount - 101) / 10));
+  if (trustedIp || failedCount < 100) return 0;
+  const level = Math.min(7, Math.floor((failedCount - 100) / 10));
   return Math.min(30_000, 250 * (2 ** level));
 }
 

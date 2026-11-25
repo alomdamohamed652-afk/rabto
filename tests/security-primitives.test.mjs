@@ -33,6 +33,7 @@ test("a failed-IP counter is keyed independently from another IP's victim pair",
   const ipWideOne = rateLimitHash("login-ip:192.0.2.1", secret);
   const ipWideTwo = rateLimitHash("login-ip:192.0.2.2", secret);
   assert.notEqual(ipWideOne, ipWideTwo);
+  assert.equal(ipWideOne, rateLimitHash("login-ip:192.0.2.1", secret));
   assert.equal(isRateLimitLocked(new Date(5000), 4000), true);
   assert.equal(isRateLimitLocked(new Date(5000), 5000), false);
   assert.equal(isRateLimitLocked(new Date(5000), 6000), false);
