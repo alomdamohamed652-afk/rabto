@@ -31,8 +31,8 @@ export async function GET(request: Request) {
       .where(eq(productTypes.workspaceId, workspaceId))
       .orderBy(asc(productTypes.name));
     return NextResponse.json({ productTypes: rows });
-  } catch {
-    return NextResponse.json({ error: "Unable to load product types." }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: "Unable to load product types." }, { status: httpStatusForError(error) });
   }
 }
 
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       attributes: {},
     }).returning({ id: productTypes.id, name: productTypes.name, skuPrefix: productTypes.skuPrefix });
     return NextResponse.json({ productType: created }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Unable to create product type." }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: "Unable to create product type." }, { status: httpStatusForError(error) });
   }
 }
