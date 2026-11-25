@@ -16,6 +16,8 @@ type ProvisionResult = { batchId: string; quantity: number; codes: { productId: 
 export default function AdminConsole() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customersHasMore, setCustomersHasMore] = useState(false);
+  const [customersLoadingMore, setCustomersLoadingMore] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState("");
   const [types, setTypes] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,12 +38,29 @@ export default function AdminConsole() {
   const [destination, setDestination] = useState("https://example.com");
 
   const loadCustomers = useCallback(async () => {
-    const response = await fetch("/api/admin/customers", { cache: "no-store" });
-    const data = await response.json() as { customers?: Customer[]; error?: string };
+    const response = await fetch("/api/admin/customers?limit=25&offset=0", { cache: "no-store" });
+    const data = await response.json() as { customers?: Customer[]; hasMore?: boolean; error?: string };
     if (!response.ok) throw new Error(data.error || "تعذر تحميل العملاء.");
     setCustomers(data.customers || []);
+    setCustomersHasMore(Boolean(data.hasMore));
     if (data.customers?.[0]) setSelectedWorkspace((current) => current || data.customers![0].workspaceId);
   }, []);
+
+  const loadMoreCustomers = useCallback(async () => {
+    if (customersLoadingMore || !customersHasMore) return;
+    setCustomersLoadingMore(true);
+    try {
+      const response = await fetch(`/api/admin/customers?limit=25&offset=${customers.length}`, { cache: "no-store" });
+      const data = await response.json() as { customers?: Customer[]; hasMore?: boolean; error?: string };
+      if (!response.ok) throw new Error(data.error || "تعذر تحميل المزيد من العملاء.");
+      setCustomers((current) => [...current, ...(data.customers || [])]);
+      setCustomersHasMore(Boolean(data.hasMore));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "تعذر تحميل المزيد من العملاء.");
+    } finally {
+      setCustomersLoadingMore(false);
+    }
+  }, [customers.length, customersHasMore, customersLoadingMore]);
 
   const loadTypes = useCallback(async () => {
     if (!selectedWorkspace) { setTypes([]); return; }
@@ -161,6 +180,7 @@ export default function AdminConsole() {
           <section className="admin-panel">
             <div className="panel-heading"><div><span className="panel-kicker">CUSTOMER DIRECTORY</span><h2>العملاء الحاليون</h2></div><span className="panel-index">02</span></div>
             {loading ? <p className="empty-state">جارٍ تحميل العملاء...</p> : customers.length === 0 ? <p className="empty-state">لسه مفيش عملاء. أضف أول عميل للبدء.</p> : <div className="customer-list">{customers.map((customer) => <button type="button" className={selectedWorkspace === customer.workspaceId ? "customer-row selected" : "customer-row"} key={customer.workspaceId} onClick={() => setSelectedWorkspace(customer.workspaceId)}><span className="customer-avatar">{customer.workspaceName.slice(0,1)}</span><span className="customer-details"><strong>{customer.workspaceName}</strong><small>{customer.email} · {customer.workspaceSlug}</small></span><span className="row-arrow">←</span></button>)}</div>}
+            {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? "جارٍ التحميل..." : "عرض المزيد من العملاء"}</button>}
           </section>
         </div>
         <section className="admin-panel provisioning-panel" id="provisioning">

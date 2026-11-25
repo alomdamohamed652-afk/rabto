@@ -15,7 +15,13 @@ export type CustomerProductCode = {
  * one-to-many QR/NFC codes nested under `codes`. Membership is checked in
  * the same query; caller identity must come from the signed-in session.
  */
-export async function listWorkspaceProductsForMember(userId: string, workspaceId: string) {
+export async function listWorkspaceProductsForMember(
+  userId: string,
+  workspaceId: string,
+  pagination: { limit?: number; offset?: number } = {},
+) {
+  const limit = Math.min(101, Math.max(1, pagination.limit ?? 25));
+  const offset = Math.max(0, pagination.offset ?? 0);
   const db = getDb();
   return db.select({
     productId: products.id,
@@ -57,6 +63,7 @@ export async function listWorkspaceProductsForMember(userId: string, workspaceId
       productTypes.name,
       products.createdAt,
     )
-    .orderBy(asc(products.createdAt))
-    .limit(5000);
+    .orderBy(asc(products.createdAt), asc(products.id))
+    .limit(limit)
+    .offset(offset);
 }

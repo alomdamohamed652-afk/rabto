@@ -20,6 +20,9 @@ async function adminId(request: Request) {
 export async function GET(request: Request) {
   try {
     if (!await adminId(request)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const params = new URL(request.url).searchParams;
+    const limit = Math.min(100, Math.max(1, Number.parseInt(params.get("limit") || "25", 10) || 25));
+    const offset = Math.max(0, Number.parseInt(params.get("offset") || "0", 10) || 0);
     const db = getDb();
     const rows = await db.select({
       userId: users.id,
@@ -32,8 +35,10 @@ export async function GET(request: Request) {
       .innerJoin(users, eq(users.id, workspaceMembers.userId))
       .innerJoin(workspaces, eq(workspaces.id, workspaceMembers.workspaceId))
       .where(eq(users.platformRole, "customer"))
-      .orderBy(asc(workspaces.name));
-    return NextResponse.json({ customers: rows });
+      .orderBy(asc(workspaces.name), asc(users.email), asc(workspaces.id), asc(users.id))
+      .limit(limit + 1)
+      .offset(offset);
+    return NextResponse.json({ customers: rows.slice(0, limit), hasMore: rows.length > limit });
   } catch (error) {
     return NextResponse.json({ error: "Unable to load customers." }, { status: httpStatusForError(error) });
   }
