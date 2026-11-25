@@ -95,7 +95,12 @@ export default function AdminConsole() {
     finally { setBusy(false); }
   }
 
-  async function logout() {\n    await fetch("/api/auth/logout", { method: "POST" });\n    window.location.assign("/login");\n  }\n\n  function copy(value: string) {
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.assign("/login");
+  }
+
+  function copy(value: string) {
     void navigator.clipboard.writeText(value).then(() => setNotice("تم النسخ."));
   }
 
