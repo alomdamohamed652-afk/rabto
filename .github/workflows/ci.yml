@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -45,3 +48,15 @@ jobs:
       - name: Production build
         if: always()
         run: npm run build
+      - name: Commit generated package lock and Drizzle migrations
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json drizzle/
+          if git diff --cached --quiet; then
+            echo "No generated database artifacts to commit."
+            exit 0
+          fi
+          git commit -m "chore: add npm lockfile and initial Drizzle migration"
+          git push origin HEAD:foundation/activation-flow
