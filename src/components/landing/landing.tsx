@@ -3,6 +3,7 @@ import LanguageSwitcher from "@/lib/i18n/language-switcher";
 import { landingCopy, type LandingLang } from "./landing-copy";
 import RevealRoot from "./reveal-root";
 import DestinationDemo from "./destination-demo";
+import UseIllustration from "./use-illustration";
 import "./landing.css";
 
 function Arrow() { return <span className="lp-arrow" aria-hidden="true">→</span>; }
@@ -66,6 +67,7 @@ export default function Landing({ lang }: { lang: LandingLang }) {
           <div className="lp-grid4">
             {c.uses.items.map((it, i) => (
               <article className="lp-card" key={it.k} data-reveal style={{ ["--d" as string]: `${i * 70}ms` }}>
+                <span className="lp-illus"><UseIllustration index={i} /></span>
                 <span className="lp-num">{it.k}</span>
                 <h3>{it.t}</h3>
                 <p>{it.d}</p>

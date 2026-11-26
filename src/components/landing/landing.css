@@ -182,3 +182,6 @@
 .lp-chips li { border: 0; border-radius: 12px; background: #e9e8df; }
 .lp-root .language-switcher { border: 0; border-radius: 12px; background: #e9e8df; min-height: 40px; padding: 8px 14px; }
 .lp-root .language-switcher:hover { background: #dfe5d8; }
+
+.lp-illus { display: block; height: 104px; margin-bottom: 14px; padding: 8px; border-radius: 14px; background: #efeee6; }
+.lp-illus svg { display: block; width: 100%; height: 100%; }
