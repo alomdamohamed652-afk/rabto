@@ -88,8 +88,22 @@ export default function LinksEditor({ workspaceId, workspaceSlug, lang = "ar" }:
       if (!entryOk(e)) throw new Error(t.bad + " (" + (i + 1) + ")");
       blocks.push(e.kind === "social" ? { type: "social", platform: e.platform, url: e.value.trim(), ...(e.label.trim() ? { label: e.label.trim() } : {}) } : { type: "link", label: e.label.trim(), url: e.value.trim() });
     });
-    // Keep every block this editor does not own (menu, text, images), in their original order, after the buttons.
-    for (const b of (base?.blocks || [])) if (!["profile", "social", "link"].includes(b.type || "")) blocks.push(b);
+    // Blocks this editor does not own (menu, text, images, headings) keep their positions. The editor's own blocks
+    // (profile and buttons) fill the slots the old own blocks used; extra ones go after the last slot.
+    const isOwn = (x: Block) => ["profile", "social", "link"].includes(x.type || "");
+    const prev = base?.blocks || [];
+    const slots = prev.map((x, i) => (isOwn(x) ? i : -1)).filter((i) => i >= 0);
+    if (prev.length > 0) {
+      const rest = [...blocks];
+      const out: unknown[] = [];
+      prev.forEach((x, i) => {
+        if (!isOwn(x)) { out.push(x); return; }
+        const last = i === slots[slots.length - 1];
+        if (last) out.push(...rest.splice(0)); else { const n = rest.shift(); if (n !== undefined) out.push(n); }
+      });
+      if (slots.length === 0) out.unshift(...rest);
+      return { lang: pLang, blocks: out };
+    }
     return { lang: pLang, blocks };
   }
 

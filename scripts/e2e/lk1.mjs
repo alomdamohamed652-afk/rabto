@@ -11,6 +11,8 @@ const bads=[['javascript url',{type:'social',platform:'website',url:'javascript:
 for(const [n,b] of bads){const r=await save('b'+Math.random().toString(36).slice(2,8),[b.type==='profile'?b:P,b]);chk('rejects '+n,r.s===400,r.s);}
 chk('rejects two profiles',(await save('two',[P,P])).s===400);
 chk('rejects bad lang',(await save('bl',[P],{lang:'fr'})).s===400);
+chk('rejects credentials in custom link',(await save('cc',[P,{type:'link',label:'x',url:'https://u:p@example.com/a'}])).s===400);
+chk('rejects credentials in avatar',(await save('ca',[{type:'profile',name:'N',avatarUrl:'https://u:p@example.com/a.png'}])).s===400);
 const okr=await save('okv',[P,{type:'social',platform:'whatsapp',url:'01064589298'},{type:'social',platform:'instagram',url:'instagram.com/x'}],{lang:'en'});chk('accepts valid',okr.s===201);
 const br=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox'],headless:'new'});
 const [n,...v]=ck.split('=');
@@ -59,6 +61,18 @@ for(const lang of ['en','ar']){
   const h2=await (await fetch(B+'/p/lk-cafe/'+slug)).text();
   chk(lang+' after menu save: links kept',h2.includes('instagram.com/lkdemo')&&h2.includes('wa.me/201064589298')&&h2.includes('example.com/shop'));
   chk(lang+' after menu save: menu present, lang kept',h2.includes('Tea')&&h2.includes(`lang="${lang}"`));
+  await pg.close();
+}
+{ // editor keeps positions of blocks it does not own
+  const mx={type:'menu',title:'M',currency:'EGP',sections:[{name:'S',items:[{name:'I',priceMinor:100,available:true}]}]};
+  const r0=await save('ord',[P,{type:'heading',text:'H'},{type:'social',platform:'website',url:'example.com'},mx,{type:'link',label:'L',url:'https://example.com/l'},{type:'text',text:'T'}],{lang:'en'});
+  const pg=await br.newPage();await pg.setCookie({name:n,value:v.join('='),url:B},{name:'rabto_lang',value:'en',url:B});await pg.setViewport({width:1000,height:900});await pg.goto(B+'/app',{waitUntil:'networkidle0'});
+  await pg.evaluate(()=>{const row=[...document.querySelectorAll('#links .menu-row')].find(r=>r.textContent.includes('/ord'));row.querySelectorAll('button')[0].click()});
+  await pg.waitForSelector('#links form');
+  await pg.evaluate(()=>{const f=document.querySelector('#links form');[...f.querySelectorAll('button')].find(b=>b.textContent.trim()==='Save draft').click()});
+  await pg.waitForFunction(()=>/Draft saved/.test(document.querySelector('#links .menu-msg')?.textContent||''));
+  const list=await call('/api/customer/pages?workspaceId='+ws,{cookie:ck});const row=list.j.pages.find(p=>p.slug==='ord');
+  chk('editor save keeps block order',JSON.stringify(row.draftContent.blocks.map(b=>b.type))===JSON.stringify(['profile','heading','social','menu','link','text']),JSON.stringify(row.draftContent.blocks.map(b=>b.type)));
   await pg.close();
 }
 await br.close();console.log(bad?'FAILED':'DONE');process.exit(bad);

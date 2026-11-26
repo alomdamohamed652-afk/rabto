@@ -9,6 +9,7 @@ export function safeUrl(value, { imageOnly = false } = {}) {
   if (/[\u0000-\u001f\u007f\s]/.test(value)) return null;
   let u;
   try { u = new URL(value); } catch { return null; }
+  if (u.protocol === "https:" && (u.username || u.password)) return null; // no credentials in URLs
   if (imageOnly) return u.protocol === "https:" && u.hostname ? u.href : null;
   if (u.protocol === "https:") return u.hostname ? u.href : null;
   if (u.protocol === "tel:") return /^tel:\+?[0-9()\-.]{3,30}$/.test(value) ? value : null;
@@ -203,7 +204,7 @@ h1{font-size:28px;line-height:1.3;margin:0 0 20px}h2{font-size:20px;margin:28px 
 hr{border:0;border-top:1px solid rgba(32,35,31,.14);margin:24px 0}.btn{display:block;margin:12px 0;padding:14px 18px;background:#20231f;color:#fff;text-decoration:none;text-align:center;border-radius:4px}.btn:focus-visible,.btn:hover{background:#91a786;color:#20231f}
 .menu{margin-top:8px}.mh{margin:0 0 14px;color:#4d5247;font-size:14px;font-weight:600}html{scroll-behavior:smooth}
 .mnav{position:sticky;top:0;z-index:2;display:flex;gap:8px;overflow-x:auto;margin:0 -20px 8px;padding:10px 20px;background:rgba(245,244,238,.94);backdrop-filter:blur(6px);scrollbar-width:none}.mnav::-webkit-scrollbar{display:none}
-.mnav a{flex:none;padding:9px 16px;border-radius:14px;background:#e9e8df;color:#20231f;text-decoration:none;font-size:14px;font-weight:700;line-height:1.4;box-shadow:0 3px 8px rgba(32,35,31,.08),inset 0 1px 0 rgba(255,255,255,.7)}.mnav a:focus-visible,.mnav a:hover{background:#20231f;color:#f5f4ee}
+.mnav a{flex:none;display:inline-flex;align-items:center;min-height:44px;padding:9px 16px;border-radius:14px;background:#e9e8df;color:#20231f;text-decoration:none;font-size:14px;font-weight:700;line-height:1.4;box-shadow:0 3px 8px rgba(32,35,31,.08),inset 0 1px 0 rgba(255,255,255,.7)}.mnav a:focus-visible,.mnav a:hover{background:#20231f;color:#f5f4ee}
 .ms{scroll-margin-top:70px}.ms h3{display:flex;align-items:center;gap:10px;margin:26px 0 6px;font-size:20px;line-height:1.4}.ms h3 small{font-size:12px;font-weight:700;padding:2px 10px;border-radius:10px;background:#e7ece1;color:#42533c}
 .ms ul{list-style:none;margin:0;padding:0}.mi{display:flex;align-items:flex-start;gap:14px;background:#fffefa;border-radius:18px;padding:14px 16px;margin:10px 0;box-shadow:0 8px 22px rgba(32,35,31,.07),0 1px 2px rgba(32,35,31,.05)}.mimg{width:76px;height:76px;margin:0;border-radius:14px;flex:none;background:#e7ece1 center/cover no-repeat}
 .mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.mt b{font-size:16px;line-height:1.5;overflow-wrap:anywhere}.mt span{font-size:13px;color:#4d5247;line-height:1.7;overflow-wrap:anywhere}
