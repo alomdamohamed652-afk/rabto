@@ -181,7 +181,7 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
       <div className="menu-actions sticky">
         <button type="submit" className="menu-btn" disabled={busy}>{t.save}</button>
         <button type="button" className="menu-btn solid" disabled={busy} onClick={() => void publish()}>{t.publish}</button>
-        <button type="button" className="menu-btn" onClick={() => setEditing(false)}>×</button>
+        <button type="button" className="menu-btn" onClick={() => setEditing(false)} aria-label={lang === "ar" ? "إغلاق المحرر" : "Close editor"}>×</button>
       </div>
       {msg && <p className="menu-msg" role="status">{msg}</p>}<p className="menu-note">{t.note}</p>
     </form>}

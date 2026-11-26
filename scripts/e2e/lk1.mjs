@@ -28,7 +28,7 @@ for(const lang of ['en','ar']){
   await pg.select('#links form select',lang);
   await pg.evaluate(()=>{const f=document.querySelector('#links form');const s=f.querySelectorAll('input')[3];s.value='';});
   const slugIn=(await pg.$$('#links form input'))[3];await slugIn.click({clickCount:3});await slugIn.type(slug);
-  const chip=async(k)=>{await clickText('#links button',L.as);await pg.waitForSelector('#links .lk-chip');await pg.click(`#links .lk-chip[data-platform="${k}"]`);};
+  const chip=async(k)=>{await clickText('#links button',L.as);await pg.waitForSelector('#links .lk-chip');await pg.click(`#links .lk-chip[data-platform="${k}"]`);await new Promise(r=>setTimeout(r,200));const fo=await pg.evaluate(()=>{const a=document.activeElement;return !!(a&&a.closest('#links .item-block')&&a.tagName==='INPUT')});if(!fo)bad=1;console.log((fo?'PASS ':'FAIL ')+lang+' focus moves to the new button field after picking '+k);};
   await chip('whatsapp');chk(lang+' add social',true);
   await pg.waitForFunction(()=>document.querySelectorAll('#links .item-block').length===1);
   const val=async(i,t)=>{const els=await pg.$$('#links .item-block');const inps=await els[i].$$('input');const inp=inps[0];await inp.click({clickCount:3});await inp.type(t);};

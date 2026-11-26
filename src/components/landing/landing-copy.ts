@@ -58,7 +58,7 @@ export const landingCopy: Record<LandingLang, Copy> = {
       title: "من منتجك",
       accent: "إلى عالمه الرقمي.",
       steps: [
-        { t: "ابدأ بمنتجك", d: "كل منتج بيتجهّز بكود NFC وكود QR مستقلين." },
+        { t: "ابدأ بمنتجك", d: "النظام بيخصص لكل منتج كود NFC وكود QR مستقلين، وتربطهم بالمنتج الفعلي بعد تجهيزه." },
         { t: "فعّله واربطه", d: "فعّل المنتج على حسابك، واختار يفتح رابط خارجي أو صفحة رقمية." },
         { t: "حدّث وقت ما تحتاج", d: "غيّر الوجهة وتابع الأداء، والكود المطبوع زي ما هو." }
       ]
@@ -71,9 +71,9 @@ export const landingCopy: Record<LandingLang, Copy> = {
         { t: "كودان مستقلان لكل منتج", d: "NFC وQR يوصّلوا لنفس المنتج، وكل واحد له رابطه." },
         { t: "صفحات رقمية بنسخ منشورة", d: "اكتب مسودة، وانشرها لما تكون جاهزة. كل نشر بيتحفظ كنسخة." },
         { t: "مساحات عمل منفصلة", d: "كل نشاط له منتجاته وفريقه وبياناته." },
-        { t: "تحليلات المسح", d: "عدد المسحات يوميًا لكل منتج، بتتحسب في الخلفية." },
-        { t: "منيو رقمي للمطاعم", d: "أقسام وأصناف وأسعار وصور، وتعرضه للزبون بنفس الكود. للعرض فقط، من غير طلبات أو دفع." },
-        { t: "سجل رصيد قابل للمراجعة", d: "كل حركة مسجلة، ولا يتم تعديل أو حذف السجل." }
+        { t: "تحليلات المسح", d: "عدد المسحات يوميًا لكل منتج، بتتحسب في الخلفية. بتظهر حسب باقتك." },
+        { t: "منيو رقمي للمطاعم", d: "أقسام وأصناف وأسعار وصور (بروابط https)، وتعرضه للزبون بنفس الكود. للعرض فقط، من غير طلبات أو دفع." },
+        { t: "سجل رصيد قابل للمراجعة", d: "كل حركة رصيد بتتسجل وبتفضل محفوظة، وخصم الرصيد التلقائي لسه غير مفعّل." }
       ]
     },
     cta: { eyebrow: "ابدأ", title: "منتجك يستحق", accent: "تجربة متصلة.", body: "لو عندك حساب في RABTO، سجّل دخولك. غير كده، الحسابات بتتفعّل بدعوة من فريق RABTO.", login: "تسجيل الدخول", how: "كيف يعمل" },
@@ -134,12 +134,12 @@ export const landingCopy: Record<LandingLang, Copy> = {
       title: "Everything you need,",
       accent: "in one workspace.",
       items: [
-        { t: "Two independent codes per product", d: "NFC and QR reach the same product, each with its own link." },
+        { t: "Two independent codes per product", d: "The system assigns each product its own NFC code and QR code, to link to the physical item once it is prepared." },
         { t: "Digital pages with published versions", d: "Write a draft and publish when ready. Every publish is saved as a version." },
         { t: "Separate workspaces", d: "Each business has its own products, team and data." },
-        { t: "Scan analytics", d: "Daily scan counts per product, processed in the background." },
-        { t: "Digital menus for restaurants", d: "Sections, items, prices and photos, shown to guests through the same code. Display only, no ordering or payment." },
-        { t: "An auditable credit ledger", d: "Every movement is recorded. Entries are never edited or deleted." }
+        { t: "Scan analytics", d: "Daily scan counts per product, processed in the background. Shown depending on your plan." },
+        { t: "Digital menus for restaurants", d: "Sections, items, prices and photos (https links), shown to guests through the same code. Display only, no ordering or payment." },
+        { t: "An auditable credit ledger", d: "Every credit movement is recorded and kept. Automatic credit deduction is not active yet." }
       ]
     },
     cta: { eyebrow: "Get started", title: "Your product deserves", accent: "a connected experience.", body: "If you have a RABTO account, log in. Otherwise accounts are activated by invitation from the RABTO team.", login: "Log in", how: "How it works" },

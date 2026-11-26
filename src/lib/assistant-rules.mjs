@@ -108,7 +108,7 @@ export const GUIDE = [
     en: "You enter a price per item and it is shown on the menu in the menu's currency. Prices here are for display only; there is no online payment." },
   { id: "security", section: "none",
     kw: ["!امان", "!security", "حمايه", "safe", "private", "خصوصيه", "privacy", "بيانات", "data"],
-    ar: "كلمات السر بتتخزن مشفّرة (مش بتتخزن زي ما هي)، وكل مساحة عمل بتشوف بياناتها بس. جلسة الدخول بتنتهي بتسجيل الخروج.",
+    ar: "كلمات السر بتتخزن مُجزّأة (hash) ومش بتتخزن زي ما هي، وكل مساحة عمل بتشوف بياناتها بس. جلسة الدخول بتنتهي بتسجيل الخروج.",
     en: "Passwords are stored hashed, not as typed, and each workspace only sees its own data. Signing out ends your session." },
 ];
 export const FALLBACK = {
