@@ -241,3 +241,4 @@ html[lang="en"] .auth-brand, html[lang="en"] .wordmark { font-family: Manrope, A
 .menu-form label.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
 .menu-actions { display: flex; flex-wrap: wrap; gap: 10px; } .menu-actions.sticky { position: sticky; bottom: 0; padding: 12px 0; background: linear-gradient(transparent, var(--paper, #f5f4ee) 40%); }
 .menu-msg { color: #3f5a35; font-weight: 700; } .menu-note { color: #5f6459; font-size: 12px; }
+.menu-form input, .menu-form label { scroll-margin-bottom: 120px; scroll-margin-top: 20px; }
