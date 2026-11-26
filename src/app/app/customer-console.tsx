@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t, type MessageKey } from "@/lib/i18n/messages";
 
@@ -54,10 +54,10 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
       try {
         const response = await fetch(`/api/customer/products?workspaceId=${encodeURIComponent(workspaceId)}&limit=${PRODUCT_PAGE_SIZE}&offset=0`, { cache: "no-store" });
         const data = await response.json() as { products?: Product[]; hasMore?: boolean; error?: string };
-        if (!response.ok) throw new Error(data.error || t(lang, "loadProductsError"));
+        if (!response.ok) throw new Error(data.error || t(langRef.current, "loadProductsError"));
         if (active) { setProducts(data.products || []); setHasMoreProducts(Boolean(data.hasMore)); }
       } catch (cause) {
-        if (active) setError(cause instanceof Error ? cause.message : t(lang, "genericError"));
+        if (active) setError(cause instanceof Error ? cause.message : t(langRef.current, "genericError"));
       } finally {
         if (active) setLoading(false);
       }
@@ -72,7 +72,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
     try {
       const response = await fetch(`/api/customer/products?workspaceId=${encodeURIComponent(workspaceId)}&limit=${PRODUCT_PAGE_SIZE}&offset=${products.length}`, { cache: "no-store" });
       const data = await response.json() as { products?: Product[]; hasMore?: boolean; error?: string };
-      if (!response.ok) throw new Error(data.error || t(lang, "loadMoreProductsError"));
+      if (!response.ok) throw new Error(data.error || t(langRef.current, "loadMoreProductsError"));
       setProducts((current) => [...current, ...(data.products || [])]);
       setHasMoreProducts(Boolean(data.hasMore));
     } catch (cause) {
@@ -90,30 +90,30 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
   return <main className="admin-shell customer-shell">
     <aside className="admin-sidebar">
       <div className="admin-brand-row"><Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link><LanguageSwitcher lang={lang} /></div>
-      <p className="sidebar-label">مساحة العميل</p>
-      <a className="sidebar-link active" href="#products">منتجاتي</a>
-      <a className="sidebar-link" href="#workspace">مساحة العمل</a>
-      <div className="sidebar-bottom">مساحة عمل آمنة ومخصصة لحسابك</div>
+      <p className="sidebar-label">{t(lang, "workspace")}</p>
+      <a className="sidebar-link active" href="#products">{t(lang, "myProducts")}</a>
+      <a className="sidebar-link" href="#workspace">{t(lang, "workspaceSection")}</a>
+      <div className="sidebar-bottom">{t(lang, "secureWorkspace")}</div>
     </aside>
     <section className="admin-main">
-      <header className="admin-header"><div><p className="eyebrow">{t(lang, "yourConnectedProducts")}</p><h1>مساحة عملك</h1><p>{email}</p></div><button className="admin-logout" onClick={logout}>تسجيل الخروج ↗</button></header>
-      {workspaces.length === 0 ? <section className="admin-panel"><h2>لسه مفيش مساحة عمل مرتبطة بحسابك</h2><p className="auth-subtitle">تواصل مع إدارة RABTO لمساعدتك في الوصول لمساحة العمل.</p></section> : <>
+      <header className="admin-header"><div><p className="eyebrow">{t(lang, "yourConnectedProducts")}</p><h1>{t(lang, "yourWorkspace")}</h1><p>{email}</p></div><button className="admin-logout" onClick={logout}>{t(lang, "logout")} ↗</button></header>
+      {workspaces.length === 0 ? <section className="admin-panel"><h2>{t(lang, "noWorkspace")}</h2><p className="auth-subtitle">{t(lang, "contactAdmin")}</p></section> : <>
         <section className="admin-panel workspace-panel" id="workspace">
-          <label>مساحة العمل<select value={workspaceId} onChange={(e) => setWorkspaceId(e.target.value)}>{workspaces.map((workspace) => <option key={workspace.workspaceId} value={workspace.workspaceId}>{workspace.workspaceName}</option>)}</select></label>
+          <label>{t(lang, "workspaceSection")}<select value={workspaceId} onChange={(e) => setWorkspaceId(e.target.value)}>{workspaces.map((workspace) => <option key={workspace.workspaceId} value={workspace.workspaceId}>{workspace.workspaceName}</option>)}</select></label>
           <span className="workspace-role">{(() => { const role = workspaces.find((w) => w.workspaceId === workspaceId)?.role; return role ? t(lang, WORKSPACE_ROLE_KEYS[role]) : ""; })()}</span>
         </section>
         <section className="admin-panel customer-products" id="products">
-          <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "yourProducts")}</span><h2>المنتجات والأكواد</h2><p>تابع حالة كل منتج وروابط NFC وQR الخاصة به.</p></div><strong className="products-count">{products.length}</strong></div>
-          {loading ? <p className="empty-state">جارٍ تحميل المنتجات...</p> : error ? <p className="admin-error">{error}</p> : products.length === 0 ? <p className="empty-state">لا توجد منتجات في مساحة العمل دي حتى الآن.</p> : <div className="customer-product-list">{products.map((product) => {
+          <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "yourProducts")}</span><h2>{t(lang, "productsAndCodes")}</h2><p>{t(lang, "productsDescription")}</p></div><strong className="products-count">{products.length}</strong></div>
+          {loading ? <p className="empty-state">{t(lang, "loadingProducts")}</p> : error ? <p className="admin-error">{error}</p> : products.length === 0 ? <p className="empty-state">{t(lang, "noProducts")}</p> : <div className="customer-product-list">{products.map((product) => {
             return <article className="customer-product" key={product.productId}>
               <div className="product-summary"><span className="customer-avatar">R</span><div><strong>{product.productTypeName}</strong><small>{product.sku} · {product.serialNumber.slice(0,8)}</small></div><span className={product.status === "claimed" ? "product-status claimed" : "product-status"}>{t(lang, PRODUCT_STATUS_KEYS[product.status] || "statusUnknown")}</span></div>
-              <div className="channel-list">{product.codes.map((channel) => <div className="channel-row" key={channel.channel}><strong>{channel.channel.toUpperCase()}</strong><code>{productResolverUrl(channel.publicCode)}</code><span>{channel.activatedAt ? t(lang, "activated") : t(lang, "awaitingActivation")}</span><small>{channel.creditBalance ?? 0} رصيد</small></div>)}</div>
+              <div className="channel-list">{product.codes.map((channel) => <div className="channel-row" key={channel.channel}><strong>{channel.channel.toUpperCase()}</strong><code>{productResolverUrl(channel.publicCode)}</code><span>{channel.activatedAt ? t(lang, "activated") : t(lang, "awaitingActivation")}</span><small>{channel.creditBalance ?? 0} {t(lang, "balance")}</small></div>)}</div>
             </article>;
           })}</div>}
           {hasMoreProducts && <button type="button" className="list-more" onClick={() => void loadMoreProducts()} disabled={loadingMoreProducts}>{loadingMoreProducts ? t(lang, "loadingMore") : t(lang, "showMoreProducts")}</button>}
         </section>
       </>}
-      <footer className="admin-footer">RABTO · Your products, connected.</footer>
+      <footer className="admin-footer">{t(lang, "customerFooter")}</footer>
     </section>
   </main>;
 }
