@@ -154,58 +154,58 @@ export default function AdminConsole() {
     <main className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-brand-row"><Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link><LanguageSwitcher lang={lang} /></div>
-        <p className="sidebar-label">إدارة المنصة</p>
-        <a className="sidebar-link active" href="#overview">نظرة عامة</a>
-        <a className="sidebar-link" href="#customers">العملاء ومساحات العمل</a>
-        <a className="sidebar-link" href="#provisioning">تجهيز المنتجات</a>
+        <p className="sidebar-label">{t(lang, "platformManagement")}</p>
+        <a className="sidebar-link active" href="#overview">{t(lang, "overview")}</a>
+        <a className="sidebar-link" href="#customers">{t(lang, "customersWorkspaces")}</a>
+        <a className="sidebar-link" href="#provisioning">{t(lang, "productSetup")}</a>
         <div className="sidebar-bottom"><span className="status-dot" /> المنصة جاهزة للإدارة</div>
       </aside>
       <section className="admin-main">
-        <header className="admin-header"><div><p className="eyebrow">{t(lang, "controlCenter")}</p><h1>إدارة المنصة</h1><p>إدارة العملاء وتجهيز المنتجات والأكواد من مكان واحد.</p></div><button className="admin-logout" type="button" onClick={logout}>تسجيل الخروج ↗</button></header>
+        <header className="admin-header"><div><p className="eyebrow">{t(lang, "controlCenter")}</p><h1>{t(lang, "adminTitle")}</h1><p>{t(lang, "adminDescription")}</p></div><button className="admin-logout" type="button" onClick={logout}>{t(lang, "logout")} ↗</button></header>
         <section className="admin-stats" id="overview">
-          <article><span>مساحات العمل</span><strong>{customers.length}</strong><small>مساحات العملاء المسجلة</small></article>
-          <article><span>أنواع المنتجات</span><strong>{types.length}</strong><small>للعميل المحدد</small></article>
-          <article><span>نطاق الأكواد</span><strong>NFC + QR</strong><small>قناتان مستقلتان لكل منتج</small></article>
+          <article><span>{t(lang, "workspaces")}</span><strong>{customers.length}</strong><small>{t(lang, "registeredWorkspaces")}</small></article>
+          <article><span>{t(lang, "productTypes")}</span><strong>{types.length}</strong><small>{t(lang, "selectedCustomer")}</small></article>
+          <article><span>{t(lang, "codeChannels")}</span><strong>NFC + QR</strong><small>{t(lang, "twoIndependentChannels")}</small></article>
         </section>
         {notice && <div className="admin-notice" role="status">{notice}</div>}
         {error && <div className="admin-error" role="alert">{error}</div>}
-        {inviteUrl && <div className="secret-panel"><div><strong>رابط دعوة العميل</strong><p>انسخه وشاركه يدويًا. لن نعرضه مرة أخرى بعد مغادرة هذه الشاشة.</p></div><button type="button" onClick={() => copy(inviteUrl)}>نسخ رابط الدعوة</button><code>{inviteUrl}</code></div>}
+        {inviteUrl && <div className="secret-panel"><div><strong>{t(lang, "customerInvitation")}</strong><p>{t(lang, "invitationShare")}</p></div><button type="button" onClick={() => copy(inviteUrl)}>{t(lang, "copyInvitation")}</button><code>{inviteUrl}</code></div>}
         <div className="admin-grid" id="customers">
           <section className="admin-panel">
-            <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerOnboardingLabel")}</span><h2>إضافة عميل جديد</h2></div><span className="panel-index">01</span></div>
+            <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerOnboardingLabel")}</span><h2>{t(lang, "addCustomer")}</h2></div><span className="panel-index">01</span></div>
             <form className="admin-form" onSubmit={submitCustomer}>
-              <label>البريد الإلكتروني<input type="email" required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com" /></label>
-              <label>اسم مساحة العمل<input required minLength={2} maxLength={120} value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} placeholder="اسم النشاط التجاري" /></label>
-              <label>معرّف مساحة العمل<input required minLength={3} maxLength={80} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={workspaceSlug} onChange={(e) => setWorkspaceSlug(e.target.value)} placeholder="business-name" dir="ltr" /></label>
-              <button className="admin-primary" disabled={busy}>إنشاء الحساب وإصدار دعوة <span>←</span></button>
+              <label>{t(lang, "email")}<input type="email" required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com" /></label>
+              <label>{t(lang, "workspaceName")}<input required minLength={2} maxLength={120} value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} placeholder={t(lang, "customerNamePlaceholder")} /></label>
+              <label>{t(lang, "workspaceSlug")}<input required minLength={3} maxLength={80} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={workspaceSlug} onChange={(e) => setWorkspaceSlug(e.target.value)} placeholder="business-name" dir="ltr" /></label>
+              <button className="admin-primary" disabled={busy}>{t(lang, "createAccountInvite")} <span>←</span></button>
             </form>
           </section>
           <section className="admin-panel">
-            <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerDirectory")}</span><h2>العملاء الحاليون</h2></div><span className="panel-index">02</span></div>
-            {loading ? <p className="empty-state">جارٍ تحميل العملاء...</p> : customers.length === 0 ? <p className="empty-state">لسه مفيش عملاء. أضف أول عميل للبدء.</p> : <div className="customer-list">{customers.map((customer) => <button type="button" className={selectedWorkspace === customer.workspaceId ? "customer-row selected" : "customer-row"} key={customer.workspaceId} onClick={() => setSelectedWorkspace(customer.workspaceId)}><span className="customer-avatar">{customer.workspaceName.slice(0,1)}</span><span className="customer-details"><strong>{customer.workspaceName}</strong><small>{customer.email} · {customer.workspaceSlug}</small></span><span className="row-arrow">←</span></button>)}</div>}
+            <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerDirectory")}</span><h2>{t(lang, "currentCustomers")}</h2></div><span className="panel-index">02</span></div>
+            {loading ? <p className="empty-state">{t(lang, "loadingCustomers")}</p> : customers.length === 0 ? <p className="empty-state">{t(lang, "noCustomers")}</p> : <div className="customer-list">{customers.map((customer) => <button type="button" className={selectedWorkspace === customer.workspaceId ? "customer-row selected" : "customer-row"} key={customer.workspaceId} onClick={() => setSelectedWorkspace(customer.workspaceId)}><span className="customer-avatar">{customer.workspaceName.slice(0,1)}</span><span className="customer-details"><strong>{customer.workspaceName}</strong><small>{customer.email} · {customer.workspaceSlug}</small></span><span className="row-arrow">←</span></button>)}</div>}
             {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? t(lang, "loadingMore") : t(lang, "showMoreCustomers")}</button>}
           </section>
         </div>
         <section className="admin-panel provisioning-panel" id="provisioning">
-          <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "productOperations")}</span><h2>تجهيز المنتجات والأكواد</h2><p>اختار مساحة عمل، عرّف نوع المنتج، وبعدها جهّز دفعة بأكواد QR وNFC مستقلة.</p></div><span className="panel-index">03</span></div>
-          <div className="selected-customer"><label>مساحة العمل<select value={selectedWorkspace} onChange={(e) => setSelectedWorkspace(e.target.value)}><option value="">اختار عميل</option>{customers.map((c) => <option key={c.workspaceId} value={c.workspaceId}>{c.workspaceName}</option>)}</select></label><span>{customers.find((c) => c.workspaceId === selectedWorkspace)?.email || t(lang, "noCustomerSelected")}</span></div>
+          <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "productOperations")}</span><h2>{t(lang, "productOperationsLabel")}</h2><p>{t(lang, "productOperationsDescription")}</p></div><span className="panel-index">03</span></div>
+          <div className="selected-customer"><label>{t(lang, "workspaceSection")}<select value={selectedWorkspace} onChange={(e) => setSelectedWorkspace(e.target.value)}><option value="">{t(lang, "chooseCustomer")}</option>{customers.map((c) => <option key={c.workspaceId} value={c.workspaceId}>{c.workspaceName}</option>)}</select></label><span>{customers.find((c) => c.workspaceId === selectedWorkspace)?.email || t(lang, "noCustomerSelected")}</span></div>
           <div className="admin-grid nested-grid">
             <form className="admin-form" onSubmit={submitType}>
-              <h3>نوع منتج جديد</h3>
-              <label>اسم النوع<input required minLength={2} maxLength={120} value={typeName} onChange={(e) => setTypeName(e.target.value)} placeholder=t(lang, "skuExample") /></label>
-              <label>بادئة SKU<input required minLength={2} maxLength={24} value={skuPrefix} onChange={(e) => setSkuPrefix(e.target.value.toUpperCase())} placeholder=t(lang, "tagExample") dir="ltr" /></label>
-              <button className="admin-secondary" disabled={busy || !selectedWorkspace}>إضافة نوع المنتج</button>
+              <h3>{t(lang, "newProductType")}</h3>
+              <label>{t(lang, "typeName")}<input required minLength={2} maxLength={120} value={typeName} onChange={(e) => setTypeName(e.target.value)} placeholder={t(lang, "skuExample")} /></label>
+              <label>{t(lang, "skuPrefix")}<input required minLength={2} maxLength={24} value={skuPrefix} onChange={(e) => setSkuPrefix(e.target.value.toUpperCase())} placeholder={t(lang, "tagExample")} dir="ltr" /></label>
+              <button className="admin-secondary" disabled={busy || !selectedWorkspace}>{t(lang, "addProductType")}</button>
             </form>
             <form className="admin-form" onSubmit={submitBatch}>
-              <h3>إنشاء دفعة</h3>
-              <label>نوع المنتج<select required value={productTypeId} onChange={(e) => setProductTypeId(e.target.value)} disabled={!selectedWorkspace}><option value="">اختار النوع</option>{types.filter((t) => t.isActive).map((t) => <option key={t.id} value={t.id}>{t.name} ({t.skuPrefix})</option>)}</select></label>
-              <label>كود الدفعة<input required minLength={2} maxLength={64} pattern="[A-Za-z0-9_-]+" value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="BATCH-001" dir="ltr" /></label>
-              <label>الكمية<input required type="number" min={1} max={5000} value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label>
-              <label>الوجهة الأولية<input required type="url" value={destination} onChange={(e) => setDestination(e.target.value)} dir="ltr" /></label>
-              <button className="admin-primary" disabled={busy || !selectedWorkspace || !productTypeId}>تجهيز الدفعة وإصدار الأكواد <span>←</span></button>
+              <h3>{t(lang, "createBatch")}</h3>
+              <label>{t(lang, "productType")}<select required value={productTypeId} onChange={(e) => setProductTypeId(e.target.value)} disabled={!selectedWorkspace}><option value="">{t(lang, "chooseType")}</option>{types.filter((t) => t.isActive).map((t) => <option key={t.id} value={t.id}>{t.name} ({t.skuPrefix})</option>)}</select></label>
+              <label>{t(lang, "batchCode")}<input required minLength={2} maxLength={64} pattern="[A-Za-z0-9_-]+" value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="BATCH-001" dir="ltr" /></label>
+              <label>{t(lang, "quantity")}<input required type="number" min={1} max={5000} value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label>
+              <label>{t(lang, "initialDestination")}<input required type="url" value={destination} onChange={(e) => setDestination(e.target.value)} dir="ltr" /></label>
+              <button className="admin-primary" disabled={busy || !selectedWorkspace || !productTypeId}>{t(lang, "createBatchCodes")} <span>←</span></button>
             </form>
           </div>
-          {issuedCodes.length > 0 && <div className="secret-panel codes-panel"><div><strong>بيانات الأكواد السرية — تُعرض مرة واحدة</strong><p>كل منتج له كود QR وكود NFC، مع سر تفعيل مستقل لكل قناة. لا تشارك أسرار التفعيل علنًا.</p></div><button type="button" onClick={() => copy(["productId,channel,publicCode,activationSecret", ...issuedCodes.map((c) => [c.productId,c.channel,c.publicCode,c.activationSecret].join(","))].join("\n"))}>نسخ CSV</button><div className="codes-table">{issuedCodes.map((code, index) => <div className="code-row" key={`${code.productId}-${code.channel}`}><span>{index + 1}</span><strong>{code.channel.toUpperCase()}</strong><code>{code.publicCode}</code><code>{code.activationSecret}</code></div>)}</div></div>}
+          {issuedCodes.length > 0 && <div className="secret-panel codes-panel"><div><strong>{t(lang, "secretCodes")}</strong><p>{t(lang, "secretCodesDescription")}</p></div><button type="button" onClick={() => copy(["productId,channel,publicCode,activationSecret", ...issuedCodes.map((c) => [c.productId,c.channel,c.publicCode,c.activationSecret].join(","))].join("\n"))}>{t(lang, "copyCsv")}</button><div className="codes-table">{issuedCodes.map((code, index) => <div className="code-row" key={`${code.productId}-${code.channel}`}><span>{index + 1}</span><strong>{code.channel.toUpperCase()}</strong><code>{code.publicCode}</code><code>{code.activationSecret}</code></div>)}</div></div>}
         </section>
         <footer className="admin-footer">{t(lang, "adminFooter")}</footer>
       </section>
