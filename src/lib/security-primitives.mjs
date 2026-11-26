@@ -39,7 +39,6 @@ export function progressiveAccountDelayMs(failedCount, trustedIp = false) {
   const level = Math.min(7, Math.floor((failedCount - 100) / 10));
   return Math.min(30_000, 250 * (2 ** level));
 }
-
 export function isRateLimitLocked(lockedUntil, now = Date.now()) {
   return lockedUntil instanceof Date && lockedUntil.getTime() > now;
 }
@@ -48,4 +47,7 @@ export function isFixedWindowExpired(windowStart, now, windowMs) {
 }
 export function successfulLoginResetTargets(emailIpKey) {
   return emailIpKey ? [emailIpKey] : [];
+}
+export function unknownIpLoginKey(email, hash) {
+  return { keyType: "login_email_unknown_ip", keyHash: hash("login-email-unknown:" + email) };
 }

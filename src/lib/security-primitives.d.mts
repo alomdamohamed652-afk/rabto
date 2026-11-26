@@ -6,3 +6,4 @@ export function progressiveAccountDelayMs(failedCount: number, trustedIp?: boole
 export function isRateLimitLocked(lockedUntil: Date | null, now?: number): boolean;
 export function isFixedWindowExpired(windowStart: number, now: number, windowMs: number): boolean;
 export function successfulLoginResetTargets<T>(emailIpKey: T | null): T[];
+export function unknownIpLoginKey(email: string, hash: (value: string) => string): { keyType: string; keyHash: string };

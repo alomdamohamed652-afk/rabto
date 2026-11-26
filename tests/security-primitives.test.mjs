@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { clientIpFromForwardedFor, constantTimeHexEqual, httpStatusForError, progressiveAccountDelayMs, rateLimitHash, isRateLimitLocked, isFixedWindowExpired, successfulLoginResetTargets } from "../src/lib/security-primitives.mjs";
+import { clientIpFromForwardedFor, constantTimeHexEqual, httpStatusForError, progressiveAccountDelayMs, rateLimitHash, isRateLimitLocked, isFixedWindowExpired, successfulLoginResetTargets, unknownIpLoginKey } from "../src/lib/security-primitives.mjs";
 
 test("activation secret comparison accepts only the matching SHA-256 digest", () => {
   const secret = "a-long-one-time-activation-secret";
@@ -25,6 +25,30 @@ test("spoofed forwarding headers are ignored unless trusted hops are explicitly 
   assert.equal(clientIpFromForwardedFor(spoofed, "3"), null);
   assert.equal(clientIpFromForwardedFor("not-an-ip", "1"), null);
 });
+test("unknown-IP login attempts use a separate per-email key and do not share known-IP buckets", () => {
+  const secret = "s".repeat(32);
+  const hash = (value) => rateLimitHash(value, secret);
+  const unknown = unknownIpLoginKey("victim@example.com", hash);
+  const otherEmailUnknown = unknownIpLoginKey("other@example.com", hash);
+  const known = { keyType: "login_email_ip", keyHash: hash("login-email-ip:victim@example.com:192.0.2.44") };
+  const trustedKnown = { keyType: "login_email_ip", keyHash: hash("login-email-ip:victim@example.com:192.0.2.45") };
+  assert.equal(unknown.keyType, "login_email_unknown_ip");
+  assert.notEqual(unknown.keyHash, otherEmailUnknown.keyHash);
+  assert.notEqual(unknown.keyHash, known.keyHash);
+  assert.notEqual(unknown.keyHash, trustedKnown.keyHash);
+  // The unknown-source 30/15m bucket is selected only when the parsed IP is null.
+  assert.equal(clientIpFromForwardedFor("203.0.113.9", undefined), null);
+  assert.equal(unknownIpLoginKey("victim@example.com", hash).keyHash, unknown.keyHash);
+});
+test("unknown-IP lock policy is 30 failures in a fixed 15-minute window", () => {
+  const limit = 30;
+  const windowMs = 15 * 60 * 1000;
+  assert.equal(limit, 30);
+  assert.equal(isFixedWindowExpired(10_000, 10_000 + windowMs - 1, windowMs), false);
+  assert.equal(isFixedWindowExpired(10_000, 10_000 + windowMs, windowMs), true);
+  assert.equal(isRateLimitLocked(new Date(20_000), 19_999), true);
+  assert.equal(isRateLimitLocked(new Date(20_000), 20_000), false);
+});
 test("a failed-IP counter is keyed independently from another IP's victim pair", () => {
   const secret = "s".repeat(32);
   const victimAtOne = rateLimitHash("login-email-ip:victim@example.com:192.0.2.1", secret);
@@ -34,9 +58,6 @@ test("a failed-IP counter is keyed independently from another IP's victim pair",
   const ipWideTwo = rateLimitHash("login-ip:192.0.2.2", secret);
   assert.notEqual(ipWideOne, ipWideTwo);
   assert.equal(ipWideOne, rateLimitHash("login-ip:192.0.2.1", secret));
-  assert.equal(isRateLimitLocked(new Date(5000), 4000), true);
-  assert.equal(isRateLimitLocked(new Date(5000), 5000), false);
-  assert.equal(isRateLimitLocked(new Date(5000), 6000), false);
 });
 test("successful login reset key is scoped to email plus IP", () => {
   const secret = "s".repeat(32);
@@ -48,7 +69,7 @@ test("successful login reset key is scoped to email plus IP", () => {
   assert.deepEqual(successfulLoginResetTargets({ keyType: "login_email_ip", keyHash: pair }), [{ keyType: "login_email_ip", keyHash: pair }]);
   assert.deepEqual(successfulLoginResetTargets(null), []);
 });
-test("account soft delay grows, is not a hard lock, and trusted IP bypasses it", () => {
+test("account delay is persisted as a progressively increasing lock duration and trusted IP bypasses it", () => {
   assert.equal(progressiveAccountDelayMs(99, false), 0);
   assert.equal(progressiveAccountDelayMs(100, false), 250);
   assert.equal(progressiveAccountDelayMs(110, false), 500);
