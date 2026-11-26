@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLogs, recoveryRequests, users } from "@/db/schema";
 import { readSessionCookie } from "@/lib/auth";
@@ -36,11 +36,14 @@ export async function PUT(request: Request) {
   try {
     const db = getDb();
     const out = await db.transaction(async (tx) => {
-      const [r] = await tx.update(recoveryRequests).set({ status: body.decision as string, decisionNote: note || null, decidedBy: a.userId, decidedAt: new Date() }).where(eq(recoveryRequests.id, body.id as string)).returning({ id: recoveryRequests.id, status: recoveryRequests.status });
+      const [r] = await tx.update(recoveryRequests).set({ status: body.decision as string, decisionNote: note || null, decidedBy: a.userId, decidedAt: new Date() }).where(and(eq(recoveryRequests.id, body.id as string), eq(recoveryRequests.status, "open"))).returning({ id: recoveryRequests.id, status: recoveryRequests.status });
       if (!r) return null;
       await tx.insert(auditLogs).values({ actorUserId: a.userId, action: "recovery_request." + body.decision, entityType: "recovery_request", entityId: r.id, details: {} });
       return r;
     });
-    return out ? NextResponse.json(out) : NextResponse.json({ error: "Request not found." }, { status: 404 });
+    if (out) return NextResponse.json(out);
+    // Decide once: a missing id is 404, an already-decided request is 409 (the first decision stands, no second audit row).
+    const [exists] = await db.select({ id: recoveryRequests.id }).from(recoveryRequests).where(eq(recoveryRequests.id, body.id as string)).limit(1);
+    return exists ? NextResponse.json({ error: "This request was already decided." }, { status: 409 }) : NextResponse.json({ error: "Request not found." }, { status: 404 });
   } catch { return NextResponse.json({ error: "Unable to save the decision." }, { status: 500 }); }
 }

@@ -20,7 +20,7 @@ export default function RecoveryPanel({ lang = "ar" }: { lang?: Lang }) {
   useEffect(() => { const id = setTimeout(() => void load(), 0); return () => clearTimeout(id); }, [load]);
   async function decide(id: string, decision: "contacted" | "rejected") {
     const r = await fetch("/api/admin/recovery-requests", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, decision, note: notes[id] ?? "" }) });
-    if (!r.ok) setError(t.err); else await load();
+    if (r.status === 409) await load(); else if (!r.ok) setError(t.err); else await load();
   }
   return (
     <section className="admin-panel provisioning-panel" id="recovery">

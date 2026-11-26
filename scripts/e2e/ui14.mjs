@@ -1,0 +1,10 @@
+// /plans English view proof (cookie rabto_lang=en), populated with demo plans. Needs E2E_PROD=1.
+import { createRequire } from "node:module"; const puppeteer=createRequire("/tmp/e2e/")("puppeteer-core");
+const B=process.env.E2E_BASE_URL;
+async function call(path,{method='GET',body,cookie}={}){const r=await fetch(B+path,{method,headers:{...(body?{'content-type':'application/json'}:{}),...(cookie?{cookie}:{})},body:body?JSON.stringify(body):undefined});let j=null;try{j=await r.json()}catch{}return{s:r.status,j,cookie:(r.headers.get('set-cookie')||'').split(';')[0]}}
+const br=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox'],headless:'new'});
+const pg=await br.newPage();await pg.setCookie({name:'rabto_lang',value:'en',url:B});
+const A=(await call('/api/auth/login',{method:'POST',body:{email:'admin@test.local',password:'Admin-Test-Pass-123'}})).cookie;
+for(const [n,b] of [['Demo Starter',{description:'Demo plan record for layout check',priceNote:'Demo price note',maxActivatedProducts:10,maxPages:3,analyticsEnabled:false}],['Demo Growth',{description:'Second demo record',maxActivatedProducts:100,maxPages:20,analyticsEnabled:true}],['Demo Open',{description:'No limits set',analyticsEnabled:true}]])await call('/api/admin/plans',{method:'POST',cookie:A,body:{name:n,...b}});
+const shot=async(w,h,name)=>{await pg.setViewport({width:w,height:h,deviceScaleFactor:1.5});await pg.setCacheEnabled(false);await pg.goto(B+'/plans',{waitUntil:'networkidle0'});await pg.screenshot({path:'/downloads/'+name,fullPage:true});return pg.evaluate(()=>({dir:document.documentElement.dir,lang:document.documentElement.lang,over:document.documentElement.scrollWidth>innerWidth,h1:document.querySelector('h1')?.innerText,hasArabic:/[\u0600-\u06FF]/.test(document.body.innerText.replace(/RABTO/g,''))}));};
+console.log('en desktop',JSON.stringify(await shot(1440,900,'plans3-en-d.png')));console.log('en mobile',JSON.stringify(await shot(390,844,'plans3-en-m.png')));await br.close();process.exit(0);

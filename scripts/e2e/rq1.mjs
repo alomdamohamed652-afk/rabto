@@ -27,10 +27,14 @@ chk('admin sees the open request with account email and note',lst.s===200&&lst.j
 chk('invalid decision and bad id rejected',(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'reset_now'}})).s===400&&(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id:'nope',decision:'contacted'}})).s===400);
 const dec=await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'contacted',note:'called customer'}});
 chk('admin decision recorded with audit row, password untouched',dec.s===200&&q("select status from recovery_requests")==='contacted'&&q("select count(*) from audit_logs where action in ('recovery_request.created','recovery_request.contacted')")==='2'&&q("select password_hash from users where email='rq@gmail.com'")===hash0);
+chk('re-deciding a decided request is refused (409) and the first decision stands',(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'rejected'}})).s===409&&q("select status from recovery_requests where id='"+id+"'")==='contacted');
 const again=await R('01044445555','y'.repeat(900),'10.7.1.5');
 chk('after a decision a new request can be opened',again.s===200&&q("select count(*) from recovery_requests where status='open'")==='1');
 let n429=0;for(let i=0;i<5;i++){const x=await R('01044445555','x','10.7.2.'+i);if(x.s===429)n429++;}
 chk('per-phone limit (3/hour) returns 429',n429>=1,'429s '+n429);
 const long=await call('/api/admin/recovery-requests',{cookie:A});
 chk('note length capped at 500',Math.max(...long.j.requests.map(r=>(r.note||'').length))<=500);
+const oid=(await call('/api/admin/recovery-requests?status=open',{cookie:A})).j.requests?.[0]?.id;
+const par=oid?await Promise.all(Array.from({length:10},(_,i)=>call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id:oid,decision:i%2?'contacted':'rejected'}}))):[];
+chk('10 parallel admin decisions on one request: exactly one wins, the rest get 409, one decision audit row',oid&&par.filter(r=>r.s===200).length===1&&par.filter(r=>r.s===409).length===9&&q("select count(*) from audit_logs where entity_id='"+oid+"' and action in ('recovery_request.contacted','recovery_request.rejected')")==='1','200s '+par.filter(r=>r.s===200).length+' 409s '+par.filter(r=>r.s===409).length);
 console.log(out.join('\n'));process.exit(bad?1:0);
