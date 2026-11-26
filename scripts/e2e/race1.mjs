@@ -1,0 +1,32 @@
+// Email OTP password reset against the isolated DB and the local mail sink file (TEST ONLY).
+import fs from 'node:fs'; import { execFileSync } from 'node:child_process';
+const B=process.env.E2E_BASE_URL; const SINK=process.env.E2E_MAIL_SINK; const out=[]; let bad=0;
+const chk=(k,ok,x='')=>{out.push((ok?'PASS ':'FAIL ')+k+(x?' '+x:''));if(!ok)bad++;};
+async function call(path,{method='GET',body,cookie,ip}={}){const r=await fetch(B+path,{method,headers:{...(body?{'content-type':'application/json'}:{}),...(cookie?{cookie}:{}),...(ip?{'x-forwarded-for':ip}:{})},body:body?JSON.stringify(body):undefined});let j=null;try{j=await r.json()}catch{};const sc=r.headers.get('set-cookie');return {s:r.status,j,cookie:sc?sc.split(';')[0]:null};}
+const q=(sql)=>execFileSync('psql',['-d','rabto_e2e','-Atc',sql],{encoding:'utf8'}).trim();
+const allMails=()=>fs.existsSync(SINK)?fs.readFileSync(SINK,'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l)):[];
+const mails=()=>allMails().filter(x=>!/confirmation code/.test(x.subject||''));
+const verifyMail=async(email,pw)=>{const lg=await call('/api/auth/login',{method:'POST',body:{email,password:pw},ip:'10.99.'+Math.floor(Math.random()*250)+'.'+Math.floor(Math.random()*250)});const cookie=lg.cookie;const r1=await call('/api/customer/email-verification',{method:'POST',cookie});const m=allMails().filter(x=>x.to===email&&/confirmation code/.test(x.subject||'')).pop();const c=m&&m.text.match(/\b(\d{6})\b/)?.[1];const r2=await call('/api/customer/email-verification',{method:'PUT',cookie,body:{code:c}});return r1.s===200&&r2.s===200;};
+const lastCode=(to)=>{const m=mails().filter(x=>x.to===to).pop();return m&&m.text.match(/\b(\d{6})\b/)?.[1];};
+let r=await call('/api/auth/login',{method:'POST',body:{email:'admin@test.local',password:'Admin-Test-Pass-123'}});const A=r.cookie;
+r=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'rs-a@test.local',workspaceName:'Rs a',workspaceSlug:'rs-a'}});
+const tok=new URL(r.j.invitation.url).searchParams.get('token');await call('/api/auth/accept-invitation',{method:'POST',body:{token:tok,password:'Old-Password-1234'}});
+chk('setup verified',await verifyMail('rs-a@test.local','Old-Password-1234'));
+const E='rs-a@test.local';
+await call('/api/auth/password-reset/request',{method:'POST',body:{email:E},ip:'10.1.1.1'});
+const code=lastCode(E);const wrong=code==='000000'?'111111':'000000';
+const rs=await Promise.all(Array.from({length:30},(_,i)=>call('/api/auth/password-reset/confirm',{method:'POST',body:{email:E,code:wrong,password:'New-Password-1234'},ip:'10.7.'+i+'.1'})));
+const att=Number(q("select max(attempts) from password_reset_codes"));
+chk('30 parallel wrong reset guesses from 30 IPs: attempts capped at 5',att===5,'attempts '+att);
+const lc=await call('/api/auth/password-reset/confirm',{method:'POST',body:{email:E,code,password:'New-Password-1234'},ip:'10.8.8.8'});const lo=await call('/api/auth/login',{method:'POST',body:{email:E,password:'Old-Password-1234'},ip:'10.8.8.9'});chk('code now locked even when correct',(lc.s===400||lc.s===429)&&lo.s===200,'confirm '+lc.s+' login '+lo.s);
+const lg=await call('/api/auth/login',{method:'POST',body:{email:E,password:'Old-Password-1234'},ip:'10.8.8.10'});
+const c2=lg.cookie;
+await call('/api/customer/email-verification',{method:'DELETE',cookie:c2}).catch(()=>{});
+q("update users set email_verified_at=null where email='"+E+"'");
+const ok1=await call('/api/customer/email-verification',{method:'POST',cookie:c2});
+const vc=allMails().filter(x=>x.to===E&&/confirmation code/.test(x.subject||'')).pop().text.match(/\b(\d{6})\b/)[1];const vw=vc==='000000'?'111111':'000000';
+await Promise.all(Array.from({length:30},()=>call('/api/customer/email-verification',{method:'PUT',cookie:c2,body:{code:vw}})));
+const att2=Number(q("select max(attempts) from email_verification_codes where used_at is null"));
+chk('30 parallel wrong verification guesses: attempts capped at 5',ok1.s===200&&att2===5,'attempts '+att2);
+chk('verification locked even with the correct code',(await call('/api/customer/email-verification',{method:'PUT',cookie:c2,body:{code:vc}})).s===400&&q("select email_verified_at is null from users where email='"+E+"'")==='t');
+console.log(out.join('\n'));process.exit(bad?1:0);

@@ -56,10 +56,9 @@ export async function PUT(request: Request) {
     const db = getDb();
     const [row] = await db.select().from(emailVerificationCodes).where(and(eq(emailVerificationCodes.userId, userId), isNull(emailVerificationCodes.usedAt))).orderBy(desc(emailVerificationCodes.createdAt)).limit(1);
     if (!codeUsable(row)) return BAD;
-    if (!digestsEqual(row.codeHash, hashVerifyCode(userId, code))) {
-      await db.update(emailVerificationCodes).set({ attempts: sql`${emailVerificationCodes.attempts} + 1` }).where(eq(emailVerificationCodes.id, row.id));
-      return BAD;
-    }
+    const reserved = await db.update(emailVerificationCodes).set({ attempts: sql`${emailVerificationCodes.attempts} + 1` }).where(and(eq(emailVerificationCodes.id, row.id), isNull(emailVerificationCodes.usedAt), sql`${emailVerificationCodes.attempts} < ${RESET_POLICY.maxAttempts}`, sql`${emailVerificationCodes.expiresAt} > now()`)).returning({ id: emailVerificationCodes.id });
+    if (!reserved.length) return BAD;
+    if (!digestsEqual(row.codeHash, hashVerifyCode(userId, code))) return BAD;
     const ok = await db.transaction(async (tx) => {
       const used = await tx.update(emailVerificationCodes).set({ usedAt: new Date() }).where(and(eq(emailVerificationCodes.id, row.id), isNull(emailVerificationCodes.usedAt))).returning({ id: emailVerificationCodes.id });
       if (!used.length) return false;

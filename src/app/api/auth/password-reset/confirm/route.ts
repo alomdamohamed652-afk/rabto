@@ -4,7 +4,7 @@ import { getDb } from "@/db";
 import { auditLogs, passwordResetCodes, users } from "@/db/schema";
 import { hashPassword } from "@/lib/auth";
 import { activeLock, readRateLimitRows, recordRateLimitFailure, type RateLimitKey } from "@/lib/persistent-rate-limit";
-import { codeUsable, digestsEqual, hashCode, validateResetConfirm } from "@/lib/password-reset-rules.mjs";
+import { RESET_POLICY, codeUsable, digestsEqual, hashCode, validateResetConfirm } from "@/lib/password-reset-rules.mjs";
 import { clientIpFromForwardedFor, rateLimitHash } from "@/lib/security-primitives.mjs";
 
 export const runtime = "nodejs";
@@ -23,9 +23,10 @@ export async function POST(request: Request) {
     const [user] = await db.select({ id: users.id }).from(users).where(sql`lower(${users.email}) = ${v.email}`).limit(1);
     const [row] = user ? await db.select().from(passwordResetCodes).where(and(eq(passwordResetCodes.userId, user.id), isNull(passwordResetCodes.usedAt))).orderBy(desc(passwordResetCodes.createdAt)).limit(1) : [];
     if (!user || !codeUsable(row)) { await recordRateLimitFailure(db, ipKey, 20, 3600); return NextResponse.json(BAD, { status: 400 }); }
-    const match = digestsEqual(row.codeHash, hashCode(user.id, v.code));
-    if (!match) {
-      await db.update(passwordResetCodes).set({ attempts: sql`${passwordResetCodes.attempts} + 1` }).where(eq(passwordResetCodes.id, row.id));
+    // Reserve one attempt atomically BEFORE comparing, so parallel guesses cannot exceed the limit.
+    const reserved = await db.update(passwordResetCodes).set({ attempts: sql`${passwordResetCodes.attempts} + 1` }).where(and(eq(passwordResetCodes.id, row.id), isNull(passwordResetCodes.usedAt), sql`${passwordResetCodes.attempts} < ${RESET_POLICY.maxAttempts}`, sql`${passwordResetCodes.expiresAt} > now()`)).returning({ id: passwordResetCodes.id });
+    if (!reserved.length) { await recordRateLimitFailure(db, ipKey, 20, 3600); return NextResponse.json(BAD, { status: 400 }); }
+    if (!digestsEqual(row.codeHash, hashCode(user.id, v.code))) {
       await recordRateLimitFailure(db, ipKey, 20, 3600);
       return NextResponse.json(BAD, { status: 400 });
     }
