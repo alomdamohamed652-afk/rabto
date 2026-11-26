@@ -1,4 +1,5 @@
 // Plans and entitlements, end to end against the isolated test DB (TEST ONLY).
+import { execFileSync } from 'node:child_process';
 const B=process.env.E2E_BASE_URL||'http://127.0.0.1:3111'; const out=[]; let bad=0;
 const chk=(k,ok,extra='')=>{out.push((ok?'PASS ':'FAIL ')+k+(extra?' '+extra:''));if(!ok)bad++;};
 async function call(path,{method='GET',body,cookie}={}){const r=await fetch(B+path,{method,headers:{...(body?{'content-type':'application/json'}:{}),...(cookie?{cookie}:{})},body:body?JSON.stringify(body):undefined});let j=null;try{j=await r.json()}catch{};const sc=r.headers.get('set-cookie');return {s:r.status,j,cookie:sc?sc.split(';')[0]:null};}
@@ -15,8 +16,10 @@ r=await call('/api/admin/plans',{method:'POST',cookie:A,body:{name:'Small',descr
 chk('duplicate name 409',(await call('/api/admin/plans',{method:'POST',cookie:A,body:{name:'Small'}})).s===409);
 r=await call('/api/admin/plans',{method:'POST',cookie:A,body:{name:'Open'}});const open=r.j.id;
 r=await call('/api/admin/plans',{method:'POST',cookie:A,body:{name:'Retired',isActive:false}});const retired=r.j.id;
-const bad1=await mkCust('badplan',retired);chk('inactive plan rejected at customer creation',bad1.x.s===409);
-const miss=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'pl-miss@test.local',workspaceName:'Pl miss',workspaceSlug:'pl-miss',planId:'123e4567-e89b-42d3-a456-426614174000'}});chk('unknown plan rejected before creating customer',miss.s===404);
+const bad1=await mkCust('badplan',retired);chk('inactive plan rejected at customer creation',bad1.x.s===400);
+const again=await mkCust('badplan');chk('failed assignment rolled back: same email can be created afterwards',again.x.s===201);
+const miss=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'pl-miss@test.local',workspaceName:'Pl miss',workspaceSlug:'pl-miss',planId:'123e4567-e89b-42d3-a456-426614174000'}});chk('unknown plan rejected',miss.s===400);
+const missAgain=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'pl-miss@test.local',workspaceName:'Pl miss',workspaceSlug:'pl-miss'}});chk('unknown plan: no customer was left behind (rollback)',missAgain.s===201);
 const c=await mkCust('small',small);chk('customer created with plan',c.x.s===201);
 r=await call('/api/customer/plan?workspaceId='+c.ws,{cookie:c.cookie});chk('customer sees plan',r.j?.status==='active'&&r.j.plan.name==='Small'&&r.j.plan.maxPages===1&&r.j.plan.analyticsEnabled===false);
 const other=await mkCust('other',open);
@@ -50,4 +53,27 @@ chk('downgraded workspace cannot add a third page',(await pg('three')).s===403);
 chk('resolver unaffected by downgrade',(await fetch(B+'/d/'+qrs[0].publicCode,{redirect:'manual'})).status<500);
 chk('non-admin cannot assign',(await call('/api/admin/subscriptions',{method:'PUT',cookie:c.cookie,body:{workspaceId:c.ws,planId:open}})).s===403);
 chk('assign inactive plan rejected',(await call('/api/admin/subscriptions',{method:'PUT',cookie:A,body:{workspaceId:c.ws,planId:retired}})).s===409);
+// expired + default policy: limits keep applying to NEW items (proposal, not approved)
+chk('expired plan, default policy: analytics still follows the plan (blocked)',(await call('/api/customer/analytics?workspaceId='+c.ws+'&days=30',{cookie:c.cookie})).s===403);
+// audit rows read back from the DB
+const q=(sql)=>execFileSync('psql',['-d','rabto_e2e','-Atc',sql],{encoding:'utf8'}).trim();
+chk('audit: plan.created rows',Number(q("select count(*) from audit_logs where action='plan.created'"))>=3);
+chk('audit: subscription.assigned at customer creation',Number(q("select count(*) from audit_logs where action='subscription.assigned' and workspace_id='"+c.ws+"'"))===1);
+chk('audit: subscription.changed x2 with previous plan recorded',q("select count(*) from audit_logs where action='subscription.changed' and workspace_id='"+c.ws+"' and details->>'previousPlanId' is not null")==='2');
+chk('audit: last change records expired and previous status',q("select details->>'status'||'/'||(details->>'previousStatus') from audit_logs where action='subscription.changed' and workspace_id='"+c.ws+"' order by created_at desc limit 1")==='expired/active');
+chk('db: no workspace left without owner after rollback tests',q("select count(*) from workspaces w where not exists (select 1 from workspace_members m where m.workspace_id=w.id)")==='0');
+// concurrency: parallel creates must not exceed the limit
+r=await call('/api/admin/plans',{method:'POST',cookie:A,body:{name:'Two',maxPages:2,maxActivatedProducts:1}});const two=r.j.id;
+const cc=await mkCust('conc',two);
+const pgc=(slug)=>call('/api/customer/pages',{method:'POST',cookie:cc.cookie,body:{workspaceId:cc.ws,slug,title:'T',content:{blocks:[{type:'heading',text:'Hi'}]}}});
+const res6=await Promise.all(['a','b','c','d','e','f'].map(pgc));
+const created=res6.filter(x=>x.s===201).length,blocked=res6.filter(x=>x.s===403).length;
+chk('concurrent page creates: exactly 2 created, rest blocked',created===2&&blocked===4,'created '+created+' blocked '+blocked);
+chk('db page count equals limit',q("select count(*) from digital_pages where workspace_id='"+cc.ws+"'")==='2');
+r=await call('/api/admin/product-types',{method:'POST',cookie:A,body:{workspaceId:cc.ws,name:'Tag',skuPrefix:'CNC'}});
+r=await call('/api/admin/batches',{method:'POST',cookie:A,body:{workspaceId:cc.ws,productTypeId:r.j.productType.id,batchCode:'C1',quantity:3,initialDestinationUrl:'https://example.com/x'}});
+const cq=r.j.codes.filter(x=>x.channel==='qr');
+const acts=await Promise.all(cq.map(code=>call('/api/customer/activate',{method:'POST',cookie:cc.cookie,body:{workspaceId:cc.ws,publicCode:code.publicCode,activationSecret:code.activationSecret}})));
+chk('concurrent activations: exactly 1 succeeds (limit 1)',acts.filter(x=>x.s===200).length===1&&acts.filter(x=>x.s===403).length===cq.length-1,acts.map(x=>x.s).join(','));
+chk('db claims equal limit',q("select count(*) from product_claims where workspace_id='"+cc.ws+"'")==='1');
 console.log(out.join('\n'));process.exit(bad?1:0);

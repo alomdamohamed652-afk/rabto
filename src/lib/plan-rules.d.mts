@@ -4,3 +4,5 @@ export function validatePlan(body: unknown): { ok: true; value: PlanInput } | { 
 export function validateSubscription(body: unknown): { ok: true; value: SubscriptionInput } | { ok: false; error: string };
 export function effectiveStatus(sub: { status: string; endsAt: string | Date | null } | null, now?: Date): "none" | "active" | "expired" | "cancelled";
 export function canAddMore(limit: number | null | undefined, currentCount: number): boolean;
+export const LAPSED_POLICIES: string[];
+export function limitsForState(plan: { maxActivatedProducts: number | null; maxPages: number | null; analyticsEnabled: boolean }, status: string, policy?: string): { maxActivatedProducts: number | null; maxPages: number | null; analyticsEnabled: boolean };

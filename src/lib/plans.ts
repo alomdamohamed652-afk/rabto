@@ -1,6 +1,7 @@
 import "server-only";
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
+import { effectiveStatus, limitsForState, LAPSED_POLICIES } from "@/lib/plan-rules.mjs";
 import { auditLogs, plans, workspaceSubscriptions, workspaces } from "@/db/schema";
 
 type Db = ReturnType<typeof getDb>;
@@ -9,12 +10,15 @@ type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 export type Entitlements = { maxActivatedProducts: number | null; maxPages: number | null; analyticsEnabled: boolean };
 const UNRESTRICTED: Entitlements = { maxActivatedProducts: null, maxPages: null, analyticsEnabled: true };
 
-/** Entitlements of a workspace. No assigned plan means unrestricted (existing workspaces are unchanged). */
+/** Entitlements of a workspace. No assigned plan means unrestricted. Lapsed handling is a PROPOSED policy, see plan-rules. */
 export async function entitlementsFor(tx: Db | Tx, workspaceId: string): Promise<Entitlements> {
-  const [row] = await tx.select({ maxActivatedProducts: plans.maxActivatedProducts, maxPages: plans.maxPages, analyticsEnabled: plans.analyticsEnabled })
+  const [row] = await tx.select({ maxActivatedProducts: plans.maxActivatedProducts, maxPages: plans.maxPages, analyticsEnabled: plans.analyticsEnabled, status: workspaceSubscriptions.status, endsAt: workspaceSubscriptions.endsAt })
     .from(workspaceSubscriptions).innerJoin(plans, eq(plans.id, workspaceSubscriptions.planId))
     .where(eq(workspaceSubscriptions.workspaceId, workspaceId)).limit(1);
-  return row ?? UNRESTRICTED;
+  if (!row) return UNRESTRICTED;
+  const configured = process.env.RABTO_LAPSED_PLAN_POLICY;
+  const policy = configured && LAPSED_POLICIES.includes(configured) ? configured : "keep-plan-limits";
+  return limitsForState(row, effectiveStatus(row), policy);
 }
 
 /** Serialises limit checks per workspace for the rest of the transaction. */

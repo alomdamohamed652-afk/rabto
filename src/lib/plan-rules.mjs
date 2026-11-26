@@ -59,3 +59,20 @@ export function canAddMore(limit, currentCount) {
   if (limit === null || limit === undefined) return true;
   return currentCount < limit;
 }
+
+/**
+ * PROPOSED, NOT APPROVED. What limits apply once a subscription is expired or cancelled.
+ *  keep-plan-limits (current default): the plan's limits keep applying; existing items are untouched.
+ *  unrestricted: expired or cancelled subscriptions have no limits.
+ *  block-new: no new activations or pages; analytics follows the plan.
+ * Existing products, pages and resolver redirects are never disabled by any option.
+ * Selected with RABTO_LAPSED_PLAN_POLICY until the owner decides.
+ */
+export const LAPSED_POLICIES = ["keep-plan-limits", "unrestricted", "block-new"];
+export function limitsForState(plan, status, policy = "keep-plan-limits") {
+  const base = { maxActivatedProducts: plan.maxActivatedProducts, maxPages: plan.maxPages, analyticsEnabled: plan.analyticsEnabled };
+  if (status === "active") return base;
+  if (policy === "unrestricted") return { maxActivatedProducts: null, maxPages: null, analyticsEnabled: true };
+  if (policy === "block-new") return { ...base, maxActivatedProducts: 0, maxPages: 0 };
+  return base;
+}

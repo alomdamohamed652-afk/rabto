@@ -10,19 +10,19 @@ type Lang = "ar" | "en";
 const T = {
   ar: {
     kicker: "الباقات", heading: "الباقات والصلاحيات", intro: "عرّف الباقات من هنا. الحدود بتتطبق على السيرفر، وخانة الحد الفاضية معناها بلا حد. الوصف والسعر نص للعرض فقط، ومفيش دفع أو خصم تلقائي.",
-    empty: "لا توجد باقات بعد. أنشئ أول باقة.", name: "اسم الباقة", description: "وصف للعرض", priceNote: "نص السعر للعرض فقط", credits: "الرصيد المضمّن (سجل فقط)",
+    empty: "لا توجد باقات بعد. أنشئ أول باقة.", name: "اسم الباقة", description: "وصف للعرض", priceNote: "نص السعر للعرض فقط", credits: "رصيد مذكور في الباقة (ملاحظة، مش بيُضاف للرصيد)",
     maxProducts: "حد المنتجات المفعّلة", maxPages: "حد صفحات المنيو", analytics: "التحليلات متاحة", active: "الباقة فعّالة", unlimited: "بلا حد",
     create: "إنشاء الباقة", save: "حفظ", edit: "تعديل", cancel: "إلغاء", assignHeading: "تعيين باقة لعميل", customer: "العميل", plan: "الباقة", status: "الحالة", endsAt: "تاريخ الانتهاء (اختياري)",
     assign: "تعيين الباقة", choose: "اختر", st: { active: "فعّالة", expired: "منتهية", cancelled: "ملغاة" } as Record<string, string>, saved: "تم الحفظ.", yes: "نعم", no: "لا",
-    note: "عند الانتهاء أو الإلغاء أو التخفيض: المنتجات والصفحات الحالية تفضل شغالة، والحدود بتمنع الإضافة الجديدة بس.",
+    note: "سلوك الباقة بعد الانتهاء أو الإلغاء مقترح ولسه مش معتمد. الحالي: حدود الباقة تفضل سارية على الإضافة الجديدة، والمنتجات والصفحات الحالية مش بتتعطّل.",
   },
   en: {
     kicker: "PLANS", heading: "Plans and entitlements", intro: "Define plans here. Limits are enforced on the server; an empty limit means no limit. Description and price are display text only. There is no payment or automatic charging.",
-    empty: "No plans yet. Create the first plan.", name: "Plan name", description: "Display description", priceNote: "Price text (display only)", credits: "Included credits (record only)",
+    empty: "No plans yet. Create the first plan.", name: "Plan name", description: "Display description", priceNote: "Price text (display only)", credits: "Credits noted in plan (a note, not added to any balance)",
     maxProducts: "Activated products limit", maxPages: "Menu pages limit", analytics: "Analytics available", active: "Plan is active", unlimited: "No limit",
     create: "Create plan", save: "Save", edit: "Edit", cancel: "Cancel", assignHeading: "Assign a plan to a customer", customer: "Customer", plan: "Plan", status: "Status", endsAt: "End date (optional)",
     assign: "Assign plan", choose: "Choose", st: { active: "Active", expired: "Expired", cancelled: "Cancelled" } as Record<string, string>, saved: "Saved.", yes: "Yes", no: "No",
-    note: "On expiry, cancellation or a downgrade, existing products and pages keep working. Limits only stop adding new ones.",
+    note: "Behavior after expiry or cancellation is a proposal, not approved. Current default: plan limits keep applying to new items; existing products and pages are never disabled.",
   },
 } as const;
 

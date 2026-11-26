@@ -22,7 +22,7 @@ export async function PUT(request: Request) {
     const result = await db.transaction((tx) => assignPlan(tx, { ...v, actorUserId: userId }));
     if (result === "no-workspace") return NextResponse.json({ error: "Workspace not found." }, { status: 404 });
     if (result === "no-plan") return NextResponse.json({ error: "Plan not found." }, { status: 404 });
-    if (result === "inactive-plan") return NextResponse.json({ error: "Plan is not active." }, { status: 409 });
+    if (result === "inactive-plan") return NextResponse.json({ error: "Plan must be active." }, { status: 409 });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("RABTO subscription set failed", error);

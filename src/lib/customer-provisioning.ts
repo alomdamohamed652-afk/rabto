@@ -3,12 +3,15 @@ import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLogs, users, workspaceMembers, workspaces } from "@/db/schema";
 import { requirePlatformAdmin } from "@/lib/access-control";
+import { assignPlan } from "@/lib/plans";
 
 export type CreateCustomerInput = {
   actorUserId: string;
   email: string;
   workspaceName: string;
   workspaceSlug: string;
+  /** Optional plan, assigned in the SAME transaction: if it fails, no customer is created. */
+  planId?: string | null;
 };
 
 /**
@@ -63,6 +66,12 @@ export async function createCustomerAccount(input: CreateCustomerInput) {
       entityId: workspace.id,
       details: { customerUserId: user.id, email: user.email },
     });
+    if (input.planId) {
+      const r = await assignPlan(tx, { workspaceId: workspace.id, planId: input.planId, status: "active", endsAt: null, actorUserId: input.actorUserId });
+      if (r === "no-plan") throw new Error("Plan not found.");
+      if (r === "inactive-plan") throw new Error("Plan must be active.");
+      if (r !== "ok") throw new Error("Unable to assign plan.");
+    }
     return { user, workspace, invitationRequired: true as const };
   });
 }

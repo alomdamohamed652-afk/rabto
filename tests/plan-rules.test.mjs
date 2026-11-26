@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { validatePlan, validateSubscription, effectiveStatus, canAddMore } from "../src/lib/plan-rules.mjs";
+import { validatePlan, validateSubscription, effectiveStatus, canAddMore, limitsForState } from "../src/lib/plan-rules.mjs";
 
 const U = "123e4567-e89b-42d3-a456-426614174000";
 test("plan needs a real name and whole non-negative credits", () => {
@@ -38,4 +38,11 @@ test("limits only stop growth; null means no limit", () => {
   assert.equal(canAddMore(3, 3), false);
   assert.equal(canAddMore(3, 10), false);
   assert.equal(canAddMore(0, 0), false);
+});
+test("lapsed policy options (proposal) never touch an active plan", () => {
+  const plan = { maxActivatedProducts: 3, maxPages: 2, analyticsEnabled: false };
+  for (const policy of ["keep-plan-limits", "unrestricted", "block-new"]) assert.deepEqual(limitsForState(plan, "active", policy), plan);
+  assert.deepEqual(limitsForState(plan, "expired"), plan);
+  assert.deepEqual(limitsForState(plan, "cancelled", "unrestricted"), { maxActivatedProducts: null, maxPages: null, analyticsEnabled: true });
+  assert.deepEqual(limitsForState(plan, "expired", "block-new"), { maxActivatedProducts: 0, maxPages: 0, analyticsEnabled: false });
 });

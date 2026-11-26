@@ -1,8 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { plans, users, workspaces, workspaceMembers } from "@/db/schema";
-import { assignPlan } from "@/lib/plans";
+import { users, workspaces, workspaceMembers } from "@/db/schema";
 import { readSessionCookie } from "@/lib/auth";
 import { requirePlatformAdmin } from "@/lib/access-control";
 import { createCustomerAccount } from "@/lib/customer-provisioning";
@@ -56,9 +55,6 @@ export async function POST(request: Request) {
     let planId: string | null = null;
     if (body.planId !== undefined && body.planId !== null && body.planId !== "") {
       if (typeof body.planId !== "string" || !/^[0-9a-f-]{36}$/i.test(body.planId)) return NextResponse.json({ error: "Invalid plan." }, { status: 400 });
-      const [plan] = await getDb().select({ isActive: plans.isActive }).from(plans).where(eq(plans.id, body.planId)).limit(1);
-      if (!plan) return NextResponse.json({ error: "Plan not found." }, { status: 404 });
-      if (!plan.isActive) return NextResponse.json({ error: "Plan is not active." }, { status: 409 });
       planId = body.planId;
     }
     const created = await createCustomerAccount({
@@ -66,10 +62,8 @@ export async function POST(request: Request) {
       email: body.email,
       workspaceName: body.workspaceName,
       workspaceSlug: body.workspaceSlug,
+      planId,
     });
-    if (planId) {
-      await getDb().transaction((tx) => assignPlan(tx, { workspaceId: created.workspace.id, planId: planId!, status: "active", endsAt: null, actorUserId }));
-    }
     const invitation = await createCustomerInvitation({
       actorUserId,
       customerUserId: created.user.id,
