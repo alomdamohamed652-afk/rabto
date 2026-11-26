@@ -3,7 +3,7 @@
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import type { Language } from "./messages";
+import { t, type Language } from "./messages";
 
 type LanguageContextValue = {
   lang: Language;
@@ -41,9 +41,9 @@ export default function LanguageSwitcher({ lang }: { lang: Language }) {
       className="language-switcher"
       type="button"
       onClick={switchLanguage}
-      aria-label={lang === "ar" ? "Switch language to English" : "تغيير اللغة إلى العربية"}
+      aria-label={t(lang, "language")}
     >
-      {lang === "ar" ? "English" : "العربية"}
+      {t(lang, "switchLanguage")}
     </button>
   );
 }
