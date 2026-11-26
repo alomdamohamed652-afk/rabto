@@ -57,6 +57,13 @@
       "when": 1796258400000,
       "tag": "0007_password_reset_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1796344800000,
+      "tag": "0008_session_epoch_and_phone",
+      "breakpoints": true
     }
   ]
 }

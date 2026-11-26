@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const done = await db.transaction(async (tx) => {
       const used = await tx.update(passwordResetCodes).set({ usedAt: new Date() }).where(and(eq(passwordResetCodes.id, row.id), isNull(passwordResetCodes.usedAt))).returning({ id: passwordResetCodes.id });
       if (!used.length) return false;
-      await tx.update(users).set({ passwordHash, updatedAt: new Date() }).where(eq(users.id, user.id));
+      await tx.update(users).set({ passwordHash, sessionEpoch: sql`${users.sessionEpoch} + 1`, updatedAt: new Date() }).where(eq(users.id, user.id));
       await tx.insert(auditLogs).values({ actorUserId: user.id, action: "password_reset.completed", entityType: "user", entityId: user.id, details: {} });
       return true;
     });

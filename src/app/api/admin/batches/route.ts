@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const actorUserId = readSessionCookie(request.headers.get("cookie"));
+    const actorUserId = await readSessionCookie(request.headers.get("cookie"));
     if (!actorUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     await requirePlatformAdmin(actorUserId);
     const body = await request.json() as Record<string, unknown>;

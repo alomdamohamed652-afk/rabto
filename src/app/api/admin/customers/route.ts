@@ -11,7 +11,7 @@ import { httpStatusForError } from "@/lib/security-primitives.mjs";
 export const runtime = "nodejs";
 
 async function adminId(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return null;
   await requirePlatformAdmin(userId);
   return userId;
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
       workspaceName: body.workspaceName,
       workspaceSlug: body.workspaceSlug,
       planId,
+      phone: typeof body.phone === "string" ? body.phone : null,
     });
     const invitation = await createCustomerInvitation({
       actorUserId,

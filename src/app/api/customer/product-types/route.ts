@@ -10,7 +10,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Active product types of a workspace, for the order form. Members only. */
 export async function GET(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const workspaceId = new URL(request.url).searchParams.get("workspaceId");
   if (!workspaceId || !UUID.test(workspaceId)) return NextResponse.json({ error: "workspaceId is required." }, { status: 400 });

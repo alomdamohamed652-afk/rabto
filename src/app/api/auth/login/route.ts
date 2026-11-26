@@ -2,6 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { loginAttempts, users } from "@/db/schema";
+import { parseLoginIdentifier } from "@/lib/phone-rules.mjs";
 import { sessionCookie, createSessionToken, verifyPassword } from "@/lib/auth";
 import { clientIpFromForwardedFor, progressiveAccountDelayMs, rateLimitHash } from "@/lib/security-primitives.mjs";
 import {
@@ -22,7 +23,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 400 });
   }
 
-  const email = body.email.trim().toLowerCase();
+  // The field is still called "email" for compatibility; it carries an email OR a phone number.
+  const parsed = parseLoginIdentifier(body.email);
+  const email = parsed.kind === "invalid" ? body.email.trim().toLowerCase().slice(0, 64) : (parsed.kind === "phone" ? "tel:" : "") + parsed.value;
   const password = body.password;
   const ip = clientIpFromForwardedFor(request.headers.get("x-forwarded-for"), process.env.TRUSTED_PROXY_HOPS);
   const db = getDb();
@@ -63,10 +66,9 @@ export async function POST(request: Request) {
       if (!unknownLock.allowed) return { kind: "limited" as const, retryAfterSeconds: unknownLock.retryAfterSeconds };
     }
 
-    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const [user] = validEmail ? await tx.select({
-      id: users.id, passwordHash: users.passwordHash, platformRole: users.platformRole,
-    }).from(users).where(sql`lower(${users.email}) = ${email}`).limit(1) : [];
+    const [user] = parsed.kind !== "invalid" ? await tx.select({
+      id: users.id, passwordHash: users.passwordHash, platformRole: users.platformRole, sessionEpoch: users.sessionEpoch,
+    }).from(users).where(parsed.kind === "phone" ? eq(users.phone, parsed.value) : sql`lower(${users.email}) = ${parsed.value}`).limit(1) : [];
     const valid = await verifyPassword(password, user?.passwordHash ?? null);
 
     if (!user || !valid) {
@@ -89,6 +91,6 @@ export async function POST(request: Request) {
   if (result.kind === "limited") return tooManyAttempts(result.retryAfterSeconds);
   if (result.kind === "invalid") return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   const response = NextResponse.json({ success: true, role: result.user.platformRole });
-  response.headers.append("Set-Cookie", sessionCookie(createSessionToken(result.user.id)));
+  response.headers.append("Set-Cookie", sessionCookie(createSessionToken(result.user.id, result.user.sessionEpoch)));
   return response;
 }

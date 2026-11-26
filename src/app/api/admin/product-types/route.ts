@@ -9,7 +9,7 @@ import { httpStatusForError } from "@/lib/security-primitives.mjs";
 export const runtime = "nodejs";
 
 async function getAdminId(request: Request) {
-  const id = readSessionCookie(request.headers.get("cookie"));
+  const id = await readSessionCookie(request.headers.get("cookie"));
   if (!id) return null;
   await requirePlatformAdmin(id);
   return id;

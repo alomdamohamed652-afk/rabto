@@ -14,7 +14,7 @@ function tooManyAttempts(seconds: number) {
   return NextResponse.json({ error: "Too many failed attempts. Try again later." }, { status: 429, headers: { "Retry-After": String(seconds) } });
 }
 export async function POST(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   let body: { workspaceId?: unknown; publicCode?: unknown; activationSecret?: unknown };
   try { body = await request.json(); } catch { return NextResponse.json(NOT_FOUND, { status: 404 }); }

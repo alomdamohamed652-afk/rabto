@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function authorize(request: Request, workspaceId: unknown, id: string) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (typeof workspaceId !== "string" || !UUID.test(workspaceId) || !UUID.test(id)) return NextResponse.json({ error: "workspaceId and a valid order id are required." }, { status: 400 });
   try { await requireWorkspaceMember(userId, workspaceId); } catch { return NextResponse.json({ error: "Forbidden" }, { status: 403 }); }

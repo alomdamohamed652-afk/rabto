@@ -40,6 +40,7 @@ export default function AdminConsole() {
   useEffect(() => { let live = true; fetch("/api/admin/plans", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j) setPlansList(j.plans); }).catch(() => {}); return () => { live = false; }; }, []);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceSlug, setWorkspaceSlug] = useState("");
+  const [phone, setPhone] = useState("");
   const [typeName, setTypeName] = useState("");
   const [skuPrefix, setSkuPrefix] = useState("");
   const [productTypeId, setProductTypeId] = useState("");
@@ -114,12 +115,12 @@ export default function AdminConsole() {
   async function submitCustomer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError(""); setNotice(""); setInviteUrl("");
     try {
-      const response = await fetch("/api/admin/customers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, workspaceName, workspaceSlug, planId: newPlanId || undefined }) });
+      const response = await fetch("/api/admin/customers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, workspaceName, workspaceSlug, planId: newPlanId || undefined, phone: phone || undefined }) });
       const data = await response.json() as InvitationResult & { error?: string };
       if (!response.ok) throw new Error(data.error || t(lang, "createCustomerError"));
       setInviteUrl(data.invitation.url);
       setNotice(t(lang, "invitationCreated"));
-      setEmail(""); setWorkspaceName(""); setWorkspaceSlug("");
+      setEmail(""); setPhone(""); setWorkspaceName(""); setWorkspaceSlug("");
       await loadCustomers();
     } catch (cause) { setError(cause instanceof Error ? cause.message : t(lang, "genericError")); }
     finally { setBusy(false); }
@@ -182,6 +183,7 @@ export default function AdminConsole() {
             <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerOnboardingLabel")}</span><h2>{t(lang, "addCustomer")}</h2></div><span className="panel-index">01</span></div>
             <form className="admin-form" onSubmit={submitCustomer}>
               <label>{t(lang, "email")}<input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com" /></label>
+              <label>{t(lang, "phoneOptional")}<input type="tel" inputMode="tel" autoComplete="off" maxLength={40} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01012345678" dir="ltr" /></label>
               <label>{t(lang, "workspaceName")}<input required minLength={2} maxLength={120} value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} placeholder={t(lang, "customerNamePlaceholder")} /></label>
               <label>{t(lang, "workspaceSlug")}<input required minLength={3} maxLength={80} inputMode="text" autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={workspaceSlug} onChange={(e) => setWorkspaceSlug(e.target.value)} placeholder="business-name" dir="ltr" /></label>
               <label>{lang === "en" ? "Plan (optional)" : "الباقة (اختياري)"}<select value={newPlanId} onChange={(e) => setNewPlanId(e.target.value)}><option value="">{lang === "en" ? "No plan yet" : "بدون باقة حاليًا"}</option>{plansList.filter((p) => p.isActive).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>

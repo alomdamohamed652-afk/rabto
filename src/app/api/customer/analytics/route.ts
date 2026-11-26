@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const url = new URL(request.url);
   const workspaceId = url.searchParams.get("workspaceId");

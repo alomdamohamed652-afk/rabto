@@ -1,4 +1,7 @@
 import "server-only";
+import { eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { users } from "@/db/schema";
 import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 
 function scrypt(password: string, salt: Buffer, keyLength: number, options: { N: number; r: number; p: number; maxmem: number }): Promise<Buffer> {
@@ -44,19 +47,19 @@ export async function verifyPassword(password: string, encoded: string | null): 
   }
 }
 
-type SessionPayload = { sub: string; exp: number; iat: number };
+type SessionPayload = { sub: string; exp: number; iat: number; ep?: number };
 function sign(value: string): string {
   return createHmac("sha256", sessionSecret()).update(value).digest("base64url");
 }
 
-export function createSessionToken(userId: string): string {
+export function createSessionToken(userId: string, epoch = 0): string {
   const now = Math.floor(Date.now() / 1000);
-  const payload: SessionPayload = { sub: userId, iat: now, exp: now + SESSION_TTL_SECONDS };
+  const payload: SessionPayload = { sub: userId, iat: now, exp: now + SESSION_TTL_SECONDS, ep: epoch };
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
   return `${body}.${sign(body)}`;
 }
 
-export function verifySessionToken(token: string): string | null {
+export function verifySessionClaims(token: string): { sub: string; ep: number } | null {
   const [body, signature, extra] = token.split(".");
   if (!body || !signature || extra !== undefined) return null;
   try {
@@ -66,10 +69,22 @@ export function verifySessionToken(token: string): string | null {
     const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as SessionPayload;
     const now = Math.floor(Date.now() / 1000);
     if (typeof payload.sub !== "string" || !payload.sub || !Number.isInteger(payload.exp) || payload.exp <= now || payload.iat > now + 60) return null;
-    return payload.sub;
+    return { sub: payload.sub, ep: Number.isInteger(payload.ep) ? (payload.ep as number) : 0 };
   } catch {
     return null;
   }
+}
+
+export function verifySessionToken(token: string): string | null {
+  return verifySessionClaims(token)?.sub ?? null;
+}
+
+/** Signature, expiry AND the account epoch in PostgreSQL: a reset invalidates older sessions. */
+export async function verifySessionLive(token: string): Promise<string | null> {
+  const claims = verifySessionClaims(token);
+  if (!claims) return null;
+  const [row] = await getDb().select({ epoch: users.sessionEpoch }).from(users).where(eq(users.id, claims.sub)).limit(1);
+  return row && row.epoch === claims.ep ? claims.sub : null;
 }
 
 export function sessionCookie(token: string): string {
@@ -82,9 +97,9 @@ export function expiredSessionCookie(): string {
   return `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure}`;
 }
 
-export function readSessionCookie(cookieHeader: string | null): string | null {
+export async function readSessionCookie(cookieHeader: string | null): Promise<string | null> {
   if (!cookieHeader) return null;
   const prefix = `${SESSION_COOKIE}=`;
   const item = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(prefix));
-  return item ? verifySessionToken(item.slice(prefix.length)) : null;
+  return item ? verifySessionLive(item.slice(prefix.length)) : null;
 }

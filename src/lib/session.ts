@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { getActorByUserId, type AuthenticatedActor } from "@/lib/access-control";
-import { verifySessionToken } from "@/lib/auth";
+import { verifySessionLive } from "@/lib/auth";
 
 const SESSION_COOKIE = "rabto_session";
 
@@ -10,7 +10,7 @@ export async function getCurrentActor(): Promise<AuthenticatedActor | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  const userId = verifySessionToken(token);
+  const userId = await verifySessionLive(token);
   if (!userId) return null;
   return getActorByUserId(userId);
 }

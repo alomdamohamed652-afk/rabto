@@ -8,10 +8,10 @@ import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 const T = {
   ar: { space: "استعادة الحساب", h1: "نسيت كلمة المرور", sub: "اكتب بريدك الإلكتروني ونبعتلك كود من 6 أرقام صالح 10 دقائق.", email: "البريد الإلكتروني", send: "إرسال الكود",
     sent: "لو فيه حساب بهذا البريد، تم إرسال كود. راجع الـspam كمان.", code: "الكود (6 أرقام)", password: "كلمة المرور الجديدة (12 حرف على الأقل)", reset: "تغيير كلمة المرور",
-    done: "تم تغيير كلمة المرور. سجّل الدخول بها.", back: "العودة لتسجيل الدخول", err: "تعذّر تنفيذ الطلب.", noMail: "ملحوظة: إرسال الإيميل مش مفعّل بعد في هذه النسخة التجريبية." },
+    done: "تم تغيير كلمة المرور. سجّل الدخول بها.", back: "العودة لتسجيل الدخول", err: "تعذّر تنفيذ الطلب.", notActive: "استعادة كلمة المرور بالإيميل مش مفعّلة لسه. اتواصل مع الإدارة.", noMail: "ملحوظة: إرسال الإيميل مش مفعّل بعد في هذه النسخة التجريبية." },
   en: { space: "ACCOUNT RECOVERY", h1: "Forgot password", sub: "Enter your email and we send a 6-digit code valid for 10 minutes.", email: "Email", send: "Send code",
     sent: "If an account exists for this email, a code was sent. Check spam too.", code: "Code (6 digits)", password: "New password (12+ characters)", reset: "Change password",
-    done: "Password changed. Log in with it.", back: "Back to login", err: "The request could not be completed.", noMail: "Note: email sending is not enabled yet in this test version." },
+    done: "Password changed. Log in with it.", back: "Back to login", err: "The request could not be completed.", notActive: "Password reset by email is not active yet. Contact the administrator.", noMail: "Note: email sending is not enabled yet in this test version." },
 } as const;
 
 export default function ForgotPasswordPage() {
@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
     try {
       const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) { setError(j.error || t.err); return false; }
+      if (!r.ok) { setError(j.code === "mail_unavailable" ? t.notActive : (j.error || t.err)); return false; }
       return true;
     } catch { setError(t.err); return false; } finally { setBusy(false); }
   }

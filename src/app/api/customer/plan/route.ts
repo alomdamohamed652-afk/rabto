@@ -9,7 +9,7 @@ import { effectiveStatus } from "@/lib/plan-rules.mjs";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const workspaceId = new URL(request.url).searchParams.get("workspaceId");
   if (!workspaceId) return NextResponse.json({ error: "workspaceId is required." }, { status: 400 });

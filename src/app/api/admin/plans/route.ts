@@ -9,7 +9,7 @@ import { validatePlan } from "@/lib/plan-rules.mjs";
 export const runtime = "nodejs";
 
 async function guard(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   try { await requirePlatformAdmin(userId); } catch { return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }; }
   return { userId };

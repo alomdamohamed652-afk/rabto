@@ -18,11 +18,15 @@ export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: varchar("email", { length: 320 }).notNull(),
   passwordHash: text("password_hash"),
+  /** Canonical E.164 (see phone-rules). Optional second login identifier, unique across all users. */
+  phone: varchar("phone", { length: 20 }),
   platformRole: platformRole("platform_role").notNull().default("customer"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+  /** Bumped on password reset; session cookies carrying an older epoch are rejected. */
+  sessionEpoch: integer("session_epoch").notNull().default(0),
   createdAt: createdAt(),
   updatedAt: updatedAt()
-}, (t) => [uniqueIndex("users_email_unique").on(sql`lower(${t.email})`)]);
+}, (t) => [uniqueIndex("users_email_unique").on(sql`lower(${t.email})`), uniqueIndex("users_phone_unique").on(t.phone)]);
 
 export const workspaces = pgTable("workspaces", {
   id: uuid("id").defaultRandom().primaryKey(),

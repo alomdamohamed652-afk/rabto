@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 
 /** Records which plan a workspace is on. Record only: no billing, no credit grant, no metering, no change to products. */
 export async function PUT(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try { await requirePlatformAdmin(userId); } catch { return NextResponse.json({ error: "Forbidden" }, { status: 403 }); }
   let body: unknown;

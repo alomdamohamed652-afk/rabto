@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 
     if (!userId) return NextResponse.json({ error: "This invitation is invalid, expired, revoked, or already used." }, { status: 400 });
     const response = NextResponse.json({ success: true });
-    response.headers.append("Set-Cookie", sessionCookie(createSessionToken(userId)));
+    response.headers.append("Set-Cookie", sessionCookie(createSessionToken(userId, (await db.select({ e: users.sessionEpoch }).from(users).where(eq(users.id, userId)).limit(1))[0]?.e ?? 0)));
     return response;
   } catch {
     return NextResponse.json({ error: "Unable to complete account setup. Please try again." }, { status: 500 });

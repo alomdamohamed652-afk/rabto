@@ -5,7 +5,7 @@ import { listWorkspaceProductsForMember } from "@/lib/customer-products";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const params = new URL(request.url).searchParams;
   const workspaceId = params.get("workspaceId");

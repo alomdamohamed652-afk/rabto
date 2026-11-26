@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLogs, passwordResetCodes, users } from "@/db/schema";
-import { sendMail } from "@/lib/mailer";
+import { mailTransportAvailable, sendMail } from "@/lib/mailer";
 import { activeLock, readRateLimitRows, recordRateLimitFailure, type RateLimitKey } from "@/lib/persistent-rate-limit";
 import { RESET_POLICY, generateCode, hashCode, validateResetRequest } from "@/lib/password-reset-rules.mjs";
 import { clientIpFromForwardedFor, rateLimitHash } from "@/lib/security-primitives.mjs";
@@ -16,6 +16,8 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request." }, { status: 400 }); }
   const v = validateResetRequest(body);
   if (!v.ok) return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
+  // No provider configured: say so plainly (reveals nothing about accounts) and create no codes.
+  if (!mailTransportAvailable()) return NextResponse.json({ error: "Password reset by email is not active yet.", code: "mail_unavailable" }, { status: 503 });
   try {
     const db = getDb();
     const ip = clientIpFromForwardedFor(request.headers.get("x-forwarded-for"), process.env.TRUSTED_PROXY_HOPS) || "unknown";

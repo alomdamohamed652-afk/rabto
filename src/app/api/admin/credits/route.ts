@@ -7,7 +7,7 @@ import { validateCreditEntry } from "@/lib/credit-rules.mjs";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const userId = readSessionCookie(request.headers.get("cookie"));
+  const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     await requirePlatformAdmin(userId);
