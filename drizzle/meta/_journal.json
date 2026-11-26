@@ -85,6 +85,13 @@
       "when": 1796604000000,
       "tag": "0011_recovery_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1796690400000,
+      "tag": "0012_enquiries",
+      "breakpoints": true
     }
   ]
 }

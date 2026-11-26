@@ -11,6 +11,7 @@ import BatchHistory from "./batch-history";
 import PlansPanel from "./plans-panel";
 import SupportPanel from "../app/support-panel";
 import RecoveryPanel from "./recovery-panel";
+import EnquiriesPanel from "./enquiries-panel";
 import type { PlanRow } from "./plans-panel";
 
 type Customer = {
@@ -200,6 +201,7 @@ export default function AdminConsole() {
           </section>
         </div>
         <BatchHistory lang={lang === "en" ? "en" : "ar"} refreshKey={issuedCodes.length} />
+        <EnquiriesPanel lang={lang === "en" ? "en" : "ar"} />
         <RecoveryPanel lang={lang === "en" ? "en" : "ar"} />
         <SupportPanel mode="admin" lang={lang === "en" ? "en" : "ar"} />
         <PlansPanel plans={plansList} customers={customers} lang={lang === "en" ? "en" : "ar"} onChanged={() => void loadPlans()} />

@@ -371,6 +371,18 @@ export const recoveryRequests = pgTable("recovery_requests", {
   createdAt: createdAt()
 }, (t) => [index("recovery_requests_status_idx").on(t.status, t.createdAt), index("recovery_requests_user_idx").on(t.userId)]);
 
+/** Public enquiries from the website, reviewed by an admin. Stored only; nothing is emailed or sent from here. */
+export const enquiries = pgTable("enquiries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 120 }).notNull(),
+  contact: varchar("contact", { length: 320 }).notNull(),
+  message: text("message").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("new"),
+  handledBy: uuid("handled_by").references(() => users.id, { onDelete: "set null" }),
+  handledAt: timestamp("handled_at", { withTimezone: true }),
+  createdAt: createdAt()
+}, (t) => [index("enquiries_status_idx").on(t.status, t.createdAt)]);
+
 /** Support: one thread per ticket, tenant-scoped. Customer message sets open, staff reply sets pending. */
 export const supportTickets = pgTable("support_tickets", {
   id: uuid("id").defaultRandom().primaryKey(),
