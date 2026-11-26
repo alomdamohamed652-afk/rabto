@@ -10,6 +10,7 @@ const A=(await call('/api/auth/login',{method:'POST',body:{email:'admin@test.loc
 const PW='Phone-Reset-12345';
 const r=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'ahmed@gmail.com',workspaceName:'Ahmed co',workspaceSlug:'ahmed-co',phone:'01022223333'}});
 await call('/api/auth/accept-invitation',{method:'POST',body:{token:new URL(r.j.invitation.url).searchParams.get('token'),password:PW}});
+await call('/api/admin/users/email-verified',{method:'PUT',cookie:A,body:{email:'ahmed@gmail.com',verified:true}});
 const L=(phone,ip)=>call('/api/auth/password-reset/lookup',{method:'POST',body:{phone},ip});
 const k=await L('01022223333','10.1.0.1'),u=await L('01099990000','10.1.0.2'),u2=await L('01099990000','10.1.0.3');
 chk('known phone returns masked email',k.s===200&&k.j.maskedEmail==='a***@g***.com',JSON.stringify(k.j));
@@ -23,6 +24,17 @@ chk('wrong phone + right email: uniform answer, no mail',(await call('/api/auth/
 chk('right phone + right email: code mailed to that email only',(await call('/api/auth/password-reset/request',{method:'POST',body:{phone:'+20 102 222 3333',email:E},ip:'10.2.0.3'})).s===200&&mails().length===1&&mails()[0].to===E);
 const code=lastCode(E);const NP='Phone-New-Pass-4321x';
 chk('code resets the password',(await call('/api/auth/password-reset/confirm',{method:'POST',body:{email:E,code,password:NP},ip:'10.2.0.4'})).s===200&&(await call('/api/auth/login',{method:'POST',body:{email:'01022223333',password:NP},ip:'10.2.0.5'})).s===200);
+// unverified mailbox: no mask truth, no code
+const r2=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'unv@gmail.com',workspaceName:'Unv co',workspaceSlug:'unv-co',phone:'01033334444'}});
+await call('/api/auth/accept-invitation',{method:'POST',body:{token:new URL(r2.j.invitation.url).searchParams.get('token'),password:PW}});
+const before=mails().length;
+const uv=await L('01033334444','10.5.0.1');chk('unverified account: lookup returns a decoy, not its real mask',uv.s===200&&uv.j.maskedEmail!=='u***@g***.com',JSON.stringify(uv.j));
+await call('/api/auth/password-reset/request',{method:'POST',body:{email:'unv@gmail.com'},ip:'10.5.0.2'});await call('/api/auth/password-reset/request',{method:'POST',body:{phone:'01033334444',email:'unv@gmail.com'},ip:'10.5.0.3'});
+chk('unverified account: no code mailed by email or phone path',mails().length===before);
+chk('customer cannot attest emails',(await call('/api/admin/users/email-verified',{method:'PUT',body:{email:'unv@gmail.com',verified:true}})).s===401);
+await call('/api/admin/users/email-verified',{method:'PUT',cookie:A,body:{email:'unv@gmail.com',verified:true}});
+await call('/api/auth/password-reset/request',{method:'POST',body:{email:'unv@gmail.com'},ip:'10.5.0.4'});
+chk('after admin attestation a code is mailed and audit row exists',mails().length===before+1&&q("select count(*) from audit_logs where action='user.email_attested'")==='2'||q("select count(*) from audit_logs where action='user.email_attested'")>='2');
 let lim=0;for(let i=0;i<8;i++){const x=await L('01077778888','10.3.0.'+i);if(x.s===429)lim++;}
 chk('phone lookup rate limited per phone (5/hour)',lim>=3,'429s '+lim);
 let ipl=0;for(let i=0;i<30;i++){const x=await L('0105555'+String(1000+i),'10.4.0.1');if(x.s===429)ipl++;}

@@ -23,6 +23,7 @@ chk('unknown phone and wrong password look identical',u1.s===401&&u2.s===401&&JS
 chk('garbage identifier rejected as invalid credentials',(await call('/api/auth/login',{method:'POST',body:{email:'not a thing',password:PW},ip:'10.9.1.4'})).s===401);
 let bf=0,be=0;for(let i=0;i<14;i++){const r2=await call('/api/auth/login',{method:'POST',body:{email:'ph-n@test.local',password:'Bad-Password-'+i+'xx'},ip:'10.9.2.2'});if(r2.s===429)be++;const r=await call('/api/auth/login',{method:'POST',body:{email:'01012345678',password:'Bad-Password-'+i+'xx'},ip:'10.9.2.1'});if(r.s===429)bf++;}
 chk('phone failures are counted and behave like email failures',bf===be&&Number(q("select count(*) from login_attempts where failed_count>=10"))>=2,'phone 429s '+bf+' email 429s '+be);
+await call('/api/admin/users/email-verified',{method:'PUT',cookie:A,body:{email:'ph-a@test.local',verified:true}});
 // session epoch
 const E='ph-a@test.local';
 const old=await call('/api/auth/login',{method:'POST',body:{email:E,password:PW},ip:'10.8.0.1'});const OC=old.cookie;

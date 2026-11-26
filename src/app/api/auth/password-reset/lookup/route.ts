@@ -29,8 +29,8 @@ export async function POST(request: Request) {
     if (!activeLock(await readRateLimitRows(db, keys)).allowed) return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
     await recordRateLimitFailure(db, keys[0], 5, 3600);
     await recordRateLimitFailure(db, keys[1], 20, 3600);
-    const [u] = await db.select({ email: users.email, passwordHash: users.passwordHash }).from(users).where(eq(users.phone, phone)).limit(1);
-    const masked = u && u.passwordHash ? maskEmail(u.email) : decoyMaskedEmail(rateLimitHash("decoy:" + phone));
+    const [u] = await db.select({ email: users.email, passwordHash: users.passwordHash, verified: users.emailVerifiedAt }).from(users).where(eq(users.phone, phone)).limit(1);
+    const masked = u && u.passwordHash && u.verified ? maskEmail(u.email) : decoyMaskedEmail(rateLimitHash("decoy:" + phone));
     return NextResponse.json({ ok: true, maskedEmail: masked });
   } catch { return NextResponse.json({ error: "Unable to continue." }, { status: 500 }); }
 }

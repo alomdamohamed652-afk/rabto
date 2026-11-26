@@ -9,6 +9,7 @@ const lastCode=(to)=>{const m=mails().filter(x=>x.to===to).pop();return m&&m.tex
 let r=await call('/api/auth/login',{method:'POST',body:{email:'admin@test.local',password:'Admin-Test-Pass-123'}});const A=r.cookie;
 r=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'rs-a@test.local',workspaceName:'Rs a',workspaceSlug:'rs-a'}});
 const tok=new URL(r.j.invitation.url).searchParams.get('token');await call('/api/auth/accept-invitation',{method:'POST',body:{token:tok,password:'Old-Password-1234'}});
+await call('/api/admin/users/email-verified',{method:'PUT',cookie:A,body:{email:'rs-a@test.local',verified:true}});
 const E='rs-a@test.local';
 const u1=await call('/api/auth/password-reset/request',{method:'POST',body:{email:E},ip:'10.1.1.1'});
 const u2=await call('/api/auth/password-reset/request',{method:'POST',body:{email:'nobody@test.local'},ip:'10.1.1.2'});

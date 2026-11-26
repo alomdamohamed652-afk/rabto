@@ -28,12 +28,13 @@ export async function POST(request: Request) {
     ];
     if (!activeLock(await readRateLimitRows(db, keys)).allowed) return NextResponse.json(UNIFORM);
     for (const k of keys) await recordRateLimitFailure(db, k, RESET_POLICY.requestsPerHour, 3600);
-    const [user] = await db.select({ id: users.id, email: users.email, phone: users.phone, passwordHash: users.passwordHash }).from(users).where(sql`lower(${users.email}) = ${v.email}`).limit(1);
+    const [user] = await db.select({ id: users.id, email: users.email, phone: users.phone, passwordHash: users.passwordHash, verified: users.emailVerifiedAt }).from(users).where(sql`lower(${users.email}) = ${v.email}`).limit(1);
     // Phone-first flow: when a phone is given, the typed full email must belong to the account with that phone.
     const givenPhone = typeof (body as { phone?: unknown })?.phone === "string" ? normalizePhone((body as { phone: string }).phone) : null;
     if ((body as { phone?: unknown })?.phone !== undefined && (!givenPhone || !user || user.phone !== givenPhone)) return NextResponse.json(UNIFORM);
     // Accounts that never set a password go through their invitation, not reset.
-    if (!user || !user.passwordHash) return NextResponse.json(UNIFORM);
+    // Only admin-attested mailboxes receive codes (an unverified address could belong to someone else).
+    if (!user || !user.passwordHash || !user.verified) return NextResponse.json(UNIFORM);
     const code = generateCode();
     await db.transaction(async (tx) => {
       await tx.update(passwordResetCodes).set({ usedAt: new Date() }).where(and(eq(passwordResetCodes.userId, user.id), isNull(passwordResetCodes.usedAt)));
