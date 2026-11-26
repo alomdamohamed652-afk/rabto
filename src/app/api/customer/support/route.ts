@@ -5,9 +5,20 @@ import { supportTickets } from "@/db/schema";
 import { readSessionCookie } from "@/lib/auth";
 import { requireWorkspaceMember } from "@/lib/access-control";
 import { SupportError, createTicket, loadThread } from "@/lib/support";
+import { activeLock, readRateLimitRows, recordRateLimitFailure, type RateLimitKey } from "@/lib/persistent-rate-limit";
+import { rateLimitHash } from "@/lib/security-primitives.mjs";
 import { validateTicket } from "@/lib/support-rules.mjs";
 
 export const runtime = "nodejs";
+
+/** Per-user abuse limit. Counts every call; returns false when the hourly allowance is used up. */
+async function allowUser(keyType: string, userId: string, max: number): Promise<boolean> {
+  const db = getDb();
+  const key: RateLimitKey = { keyType, keyHash: rateLimitHash(keyType + ":" + userId) };
+  if (!activeLock(await readRateLimitRows(db, [key])).allowed) return false;
+  await recordRateLimitFailure(db, key, max, 3600);
+  return true;
+}
 const UUID = /^[0-9a-f-]{36}$/i;
 
 async function member(request: Request, workspaceId: unknown) {
@@ -38,6 +49,7 @@ export async function POST(request: Request) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request." }, { status: 400 }); }
   const m = await member(request, body.workspaceId); if (m.res) return m.res;
   const v = validateTicket(body); if (!v.ok) return NextResponse.json({ error: v.error }, { status: 400 });
+  if (!(await allowUser("support_ticket_user", m.userId, 10))) return NextResponse.json({ error: "Too many tickets. Try again later." }, { status: 429 });
   try {
     const t = await createTicket({ workspaceId: m.workspaceId, userId: m.userId, subject: v.subject, body: v.body });
     return NextResponse.json({ ticket: { id: t.id, subject: t.subject, status: t.status } }, { status: 201 });

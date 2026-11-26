@@ -5,9 +5,21 @@ import { eq } from "drizzle-orm";
 import { readSessionCookie } from "@/lib/auth";
 import { requireWorkspaceMember } from "@/lib/access-control";
 import { SupportError, addMessage } from "@/lib/support";
+import { activeLock, readRateLimitRows, recordRateLimitFailure, type RateLimitKey } from "@/lib/persistent-rate-limit";
+import { rateLimitHash } from "@/lib/security-primitives.mjs";
 import { validateReply } from "@/lib/support-rules.mjs";
 
 export const runtime = "nodejs";
+
+
+/** Per-user abuse limit. Counts every call; returns false when the hourly allowance is used up. */
+async function allowUser(keyType: string, userId: string, max: number): Promise<boolean> {
+  const db = getDb();
+  const key: RateLimitKey = { keyType, keyHash: rateLimitHash(keyType + ":" + userId) };
+  if (!activeLock(await readRateLimitRows(db, [key])).allowed) return false;
+  await recordRateLimitFailure(db, key, max, 3600);
+  return true;
+}
 
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
   const userId = await readSessionCookie(request.headers.get("cookie"));
@@ -21,6 +33,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
     // Same 404 for a missing ticket and for another tenant's ticket.
     if (!t) return NextResponse.json({ error: "Ticket not found." }, { status: 404 });
     try { await requireWorkspaceMember(userId, t.workspaceId); } catch { return NextResponse.json({ error: "Ticket not found." }, { status: 404 }); }
+    if (!(await allowUser("support_msg_user", userId, 60))) return NextResponse.json({ error: "Too many messages. Try again later." }, { status: 429 });
     await addMessage({ ticketId: id, userId, fromStaff: false, body: v.body });
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch (e) {
