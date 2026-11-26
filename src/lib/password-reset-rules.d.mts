@@ -5,3 +5,5 @@ export function validateResetRequest(body: unknown): { ok: true; email: string }
 export function validateResetConfirm(body: unknown): { ok: true; email: string; code: string; password: string } | { ok: false; passwordRule?: boolean };
 export function codeUsable(row: { usedAt: Date | string | null; expiresAt: Date | string; attempts: number } | null | undefined, now?: number): boolean;
 export function digestsEqual(a: string, b: string): boolean;
+export function maskEmail(email: string): string;
+export function decoyMaskedEmail(digestHex: string): string;

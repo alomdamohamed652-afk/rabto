@@ -4,6 +4,7 @@ import { getDb } from "@/db";
 import { auditLogs, passwordResetCodes, users } from "@/db/schema";
 import { mailTransportAvailable, sendMail } from "@/lib/mailer";
 import { activeLock, readRateLimitRows, recordRateLimitFailure, type RateLimitKey } from "@/lib/persistent-rate-limit";
+import { normalizePhone } from "@/lib/phone-rules.mjs";
 import { RESET_POLICY, generateCode, hashCode, validateResetRequest } from "@/lib/password-reset-rules.mjs";
 import { clientIpFromForwardedFor, rateLimitHash } from "@/lib/security-primitives.mjs";
 
@@ -27,7 +28,10 @@ export async function POST(request: Request) {
     ];
     if (!activeLock(await readRateLimitRows(db, keys)).allowed) return NextResponse.json(UNIFORM);
     for (const k of keys) await recordRateLimitFailure(db, k, RESET_POLICY.requestsPerHour, 3600);
-    const [user] = await db.select({ id: users.id, email: users.email, passwordHash: users.passwordHash }).from(users).where(sql`lower(${users.email}) = ${v.email}`).limit(1);
+    const [user] = await db.select({ id: users.id, email: users.email, phone: users.phone, passwordHash: users.passwordHash }).from(users).where(sql`lower(${users.email}) = ${v.email}`).limit(1);
+    // Phone-first flow: when a phone is given, the typed full email must belong to the account with that phone.
+    const givenPhone = typeof (body as { phone?: unknown })?.phone === "string" ? normalizePhone((body as { phone: string }).phone) : null;
+    if ((body as { phone?: unknown })?.phone !== undefined && (!givenPhone || !user || user.phone !== givenPhone)) return NextResponse.json(UNIFORM);
     // Accounts that never set a password go through their invitation, not reset.
     if (!user || !user.passwordHash) return NextResponse.json(UNIFORM);
     const code = generateCode();

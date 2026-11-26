@@ -31,3 +31,11 @@ test("digest compare accepts equal hashes only", () => {
   assert.equal(digestsEqual(h, hashCode("u1", "123457", S)), false);
   assert.equal(digestsEqual(h, "abc"), false);
 });
+
+import { maskEmail, decoyMaskedEmail } from "../src/lib/password-reset-rules.mjs";
+test("masking hides lengths and decoy has the same shape", () => {
+  assert.equal(maskEmail("ahmed@gmail.com"), "a***@g***.com");
+  assert.equal(maskEmail("x@y.co.uk"), "x***@y***.uk".replace(".uk", ".uk"));
+  assert.match(decoyMaskedEmail("0a1b2c3d4e5f"), /^[a-z]\*\*\*@[a-z]\*\*\*\.[a-z]+$/);
+  assert.equal(decoyMaskedEmail("0a1b2c3d4e5f"), decoyMaskedEmail("0a1b2c3d4e5f"));
+});

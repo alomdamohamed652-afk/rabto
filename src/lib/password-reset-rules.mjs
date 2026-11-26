@@ -29,3 +29,23 @@ export function digestsEqual(aHex, bHex) {
   if (typeof aHex !== "string" || typeof bHex !== "string" || aHex.length !== bHex.length) return false;
   return timingSafeEqual(Buffer.from(aHex, "hex"), Buffer.from(bHex, "hex"));
 }
+
+/** "ahmed@gmail.com" -> "a***@g***.com". Never reveals the length of either part. */
+export function maskEmail(email) {
+  const [local, domain = ""] = String(email).split("@");
+  const dot = domain.lastIndexOf(".");
+  const host = dot > 0 ? domain.slice(0, dot) : domain;
+  const tld = dot > 0 ? domain.slice(dot) : "";
+  return `${local.slice(0, 1)}***@${host.slice(0, 1)}***${tld}`;
+}
+
+/**
+ * Same shape as maskEmail for a phone that has no account, derived from a keyed hash so the answer
+ * is stable per phone and an unknown phone looks like a known one (no account enumeration by phone).
+ */
+export function decoyMaskedEmail(digestHex) {
+  const letters = "abcdefghjkmnpqrstuvwxyz";
+  const pick = (i) => letters[parseInt(digestHex.slice(i * 2, i * 2 + 2), 16) % letters.length];
+  const tlds = [".com", ".com", ".com", ".net", ".org"];
+  return `${pick(0)}***@${pick(1)}***${tlds[parseInt(digestHex.slice(4, 6), 16) % tlds.length]}`;
+}
