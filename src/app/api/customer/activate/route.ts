@@ -36,11 +36,11 @@ export async function POST(request: Request) {
     if (!lock.allowed) return tooManyAttempts(lock.retryAfterSeconds);
 
     const result = await db.transaction(async (tx) => {
-      const [candidate] = await tx.select({ productId: products.id, activationSecretHash: productCodes.activationSecretHash, activatedAt: productCodes.activatedAt })
+      const [candidate] = await tx.select({ productId: products.id, activationSecretHash: productCodes.activationSecretHash, activatedAt: productCodes.activatedAt, productStatus: products.status })
         .from(workspaceMembers).innerJoin(products, eq(products.workspaceId, workspaceMembers.workspaceId))
         .innerJoin(productCodes, eq(productCodes.productId, products.id))
         .where(and(eq(workspaceMembers.userId, userId), eq(workspaceMembers.workspaceId, workspaceId), eq(productCodes.publicCode, publicCode))).limit(1);
-      if (!candidate || !constantTimeHexEqual(candidate.activationSecretHash, activationSecret)) return { kind: "not-found" as const };
+      if (!candidate || !constantTimeHexEqual(candidate.activationSecretHash, activationSecret) || candidate.productStatus === "archived") return { kind: "not-found" as const };
       if (candidate.activatedAt) return { kind: "conflict" as const };
       await lockWorkspace(tx, workspaceId);
       const ent = await entitlementsFor(tx, workspaceId);

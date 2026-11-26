@@ -10,6 +10,7 @@ mkdir -p "$OUT"; chmod 700 "$OUT"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"; FILE="$OUT/rabto-$STAMP-$$.dump"
 umask 077
 rm -f -- "$FILE"
+trap 'rc=$?; [ "$rc" -eq 0 ] || rm -f -- "$FILE"' EXIT
 # Note: a DATABASE_URL is passed as an argument, so other users on the same machine may see it in the process list.
 # On a shared host prefer the libpq variables (PGHOST, PGUSER, PGPASSFILE) and leave DATABASE_URL unset.
 if [ -n "${DATABASE_URL:-}" ]; then pg_dump --format=custom --no-owner --file="$FILE" "$DATABASE_URL"; else pg_dump --format=custom --no-owner --file="$FILE"; fi
@@ -17,5 +18,5 @@ chmod 600 "$FILE"
 [ -s "$FILE" ] || { echo "backup is empty" >&2; rm -f "$FILE"; exit 1; }
 pg_restore --list "$FILE" >/dev/null
 # Keep only the newest KEEP dumps made by this script.
-ls -1t "$OUT"/rabto-*.dump 2>/dev/null | tail -n +"$((KEEP+1))" | xargs -r rm -f --
+ls -1t "$OUT"/rabto-*.dump 2>/dev/null | tail -n +"$((KEEP+1))" | while IFS= read -r old; do rm -f -- "$old"; done
 echo "$FILE"

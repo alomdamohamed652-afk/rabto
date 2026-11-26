@@ -76,4 +76,8 @@ const cq=r.j.codes.filter(x=>x.channel==='qr');
 const acts=await Promise.all(cq.map(code=>call('/api/customer/activate',{method:'POST',cookie:cc.cookie,body:{workspaceId:cc.ws,publicCode:code.publicCode,activationSecret:code.activationSecret}})));
 chk('concurrent activations: exactly 1 succeeds (limit 1)',acts.filter(x=>x.s===200).length===1&&acts.filter(x=>x.s===403).length===cq.length-1,acts.map(x=>x.s).join(','));
 chk('db claims equal limit',q("select count(*) from product_claims where workspace_id='"+cc.ws+"'")==='1');
+const li=acts.findIndex(x=>x.s===403);const lc=cq[li];
+q("update products set status='archived' where id=(select product_id from product_codes where public_code='"+lc.publicCode+"')");
+const ar=await call('/api/customer/activate',{method:'POST',cookie:cc.cookie,body:{workspaceId:cc.ws,publicCode:lc.publicCode,activationSecret:lc.activationSecret}});
+chk('an archived, not yet activated product cannot be activated (same 404 as unknown)',ar.s===404&&q("select status from products where id=(select product_id from product_codes where public_code='"+lc.publicCode+"')")==='archived',String(ar.s));
 console.log(out.join('\n'));process.exit(bad?1:0);
