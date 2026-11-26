@@ -29,5 +29,11 @@ await qr.screenshot({path:'/tmp/qr-shot.png'});log('url',urlTxt.replace(/d\/.*/,
 await pg.evaluate(()=>document.querySelector('.code-tools').scrollIntoView());await sleep(400);await pg.screenshot({path:'/downloads/admin-qr-phone.png'});
 await pg.screenshot({path:'/tmp/qr-url.txt.png',clip:{x:0,y:0,width:1,height:1}});
 (await import('node:fs')).writeFileSync('/tmp/qr-expected.txt',urlTxt);
+log('origin warning shown on localhost',String(await pg.$$eval('.code-tools [role=alert]',e=>e.length>0)));
+log('download/copy disabled on localhost',String(await pg.$$eval('.code-tool button.admin-secondary',b=>b.length>0&&b.every(x=>x.disabled))));
+for(const k of ['classic','rounded','dots','sage']){await pg.select('.code-tools select',k);await sleep(500);const el=await pg.$('.code-tool .qr-box');await el.screenshot({path:'/tmp/qr-style-'+k+'.png'});}
+await pg.evaluate(()=>document.querySelector('.code-tools input[type=checkbox]').click());await sleep(500);{const el=await pg.$('.code-tool .qr-box');await el.screenshot({path:'/tmp/qr-style-sage-wm.png'});}
+await pg.select('.code-tools select','rounded');await sleep(400);await pg.evaluate(()=>document.querySelector('.code-tools').scrollIntoView());await sleep(300);await pg.screenshot({path:'/downloads/admin-qr-styles-phone.png'});
+log('presets offered',String(await pg.$$eval('.code-tools select option',o=>o.length)));
 log('console errors',errs.join('|')||'none');
 await br.close();console.log(out.join('\n'));
