@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   }
 
   const email = body.email.trim().toLowerCase();
+  const password = body.password;
   const ip = clientIpFromForwardedFor(request.headers.get("x-forwarded-for"), process.env.TRUSTED_PROXY_HOPS);
   const db = getDb();
   const accountHash = rateLimitHash("account:" + email);
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
     const [user] = validEmail ? await tx.select({
       id: users.id, passwordHash: users.passwordHash, platformRole: users.platformRole,
     }).from(users).where(sql`lower(${users.email}) = ${email}`).limit(1) : [];
-    const valid = await verifyPassword(body.password, user?.passwordHash ?? null);
+    const valid = await verifyPassword(password, user?.passwordHash ?? null);
 
     if (!user || !valid) {
       if (pairKey) await recordRateLimitFailure(tx, pairKey, 10, WINDOW_15M);
