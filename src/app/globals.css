@@ -198,3 +198,19 @@ html[lang="en"] body { font-family: Manrope, Arial, sans-serif; }
 html[lang="en"] .auth-brand, html[lang="en"] .wordmark { font-family: Manrope, Arial, sans-serif; }
 .language-switcher { min-height: 36px; padding: 8px 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); font: 600 12px Manrope, sans-serif; cursor: pointer; }
 .language-switcher:hover { border-color: var(--sage-deep); }
+
+.auth-topline, .admin-brand-row, .nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.auth-topline { margin-bottom: 32px; }
+.auth-topline .auth-brand, .admin-brand-row .auth-brand { margin-bottom: 0; }
+.admin-brand-row { width: 100%; }
+.admin-brand-row .language-switcher { flex: 0 0 auto; }
+.nav-actions { justify-content: flex-end; }
+@media (max-width: 680px) {
+  .nav-actions { gap: 8px; }
+  .language-switcher { padding: 7px 9px; }
+}
