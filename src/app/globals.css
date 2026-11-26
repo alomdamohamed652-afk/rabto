@@ -219,3 +219,23 @@ html[lang="en"] .auth-brand, html[lang="en"] .wordmark { font-family: Manrope, A
 @media (max-width: 680px) {
   .admin-header-actions { gap: 7px; }
 }
+
+/* Menu editor, soft solid style */
+.menu-editor .menu-btn { min-height: 44px; padding: 10px 18px; border: 0; border-radius: 14px; background: #e9e8df; color: var(--ink); font: 700 13px Manrope, sans-serif; cursor: pointer; box-shadow: 0 4px 12px rgba(32,35,31,.08), inset 0 1px 0 rgba(255,255,255,.7); text-decoration: none; display: inline-flex; align-items: center; }
+.menu-editor .menu-btn.solid { background: #20231f; color: #f5f4ee; }
+.menu-editor .menu-btn:disabled { opacity: .5; cursor: not-allowed; }
+.menu-editor .menu-btn:focus-visible { outline: 3px solid var(--sage-deep); outline-offset: 3px; }
+.menu-list { display: grid; gap: 12px; }
+.menu-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 18px; background: #fbfaf5; box-shadow: 0 8px 22px rgba(32,35,31,.07); }
+.menu-row > div { flex: 1 1 180px; display: grid; gap: 2px; } .menu-row small { color: #5f6459; }
+.menu-badge { padding: 4px 12px; border-radius: 999px; background: #dfe5d8; font: 700 11px Manrope, sans-serif; }
+.menu-form { display: grid; gap: 16px; }
+.menu-grid, .menu-item { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.menu-form label { display: grid; gap: 6px; font-weight: 600; font-size: 13px; }
+.menu-form input:not([type=checkbox]) { min-height: 46px; padding: 10px 14px; border: 0; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px rgba(32,35,31,.12); font-size: 16px; }
+.menu-form input:focus-visible { outline: 3px solid var(--sage-deep); }
+.menu-section { border: 0; border-radius: 22px; padding: 18px; background: #fbfaf5; box-shadow: 0 14px 34px rgba(32,35,31,.08); display: grid; gap: 14px; }
+.menu-item { padding: 14px; border-radius: 16px; background: #f1f0e8; align-items: end; } .menu-item .wide { grid-column: 1 / -1; }
+.menu-form label.check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.menu-actions { display: flex; flex-wrap: wrap; gap: 10px; } .menu-actions.sticky { position: sticky; bottom: 0; padding: 12px 0; background: linear-gradient(transparent, var(--paper, #f5f4ee) 40%); }
+.menu-msg { color: #3f5a35; font-weight: 700; } .menu-note { color: #5f6459; font-size: 12px; }

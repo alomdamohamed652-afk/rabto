@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import MenuEditor from "./menu-editor";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t, type MessageKey } from "@/lib/i18n/messages";
 
@@ -100,6 +101,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
       <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
       <p className="sidebar-label">{t(lang, "workspace")}</p>
       <a className="sidebar-link active" href="#products">{t(lang, "myProducts")}</a>
+      <a className="sidebar-link" href="#menus">{lang === "ar" ? "المنيو والصفحات" : "Menus and pages"}</a>
       <a className="sidebar-link" href="#workspace">{t(lang, "workspaceSection")}</a>
       <div className="sidebar-bottom">{t(lang, "secureWorkspace")}</div>
     </aside>
@@ -110,6 +112,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
           <label>{t(lang, "workspaceSection")}<select value={workspaceId} onChange={(e) => setWorkspaceId(e.target.value)}>{workspaces.map((workspace) => <option key={workspace.workspaceId} value={workspace.workspaceId}>{workspace.workspaceName}</option>)}</select></label>
           <span className="workspace-role">{(() => { const role = workspaces.find((w) => w.workspaceId === workspaceId)?.role; return role ? t(lang, WORKSPACE_ROLE_KEYS[role]) : ""; })()}</span>
         </section>
+        <MenuEditor key={workspaceId} workspaceId={workspaceId} workspaceSlug={workspaces.find((w) => w.workspaceId === workspaceId)?.workspaceSlug || ""} lang={lang === "en" ? "en" : "ar"} />
         <section className="admin-panel customer-products" id="products">
           <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "yourProducts")}</span><h2>{t(lang, "productsAndCodes")}</h2><p>{t(lang, "productsDescription")}</p></div><strong className="products-count">{products.length}</strong></div>
           {loading ? <p className="empty-state">{t(lang, "loadingProducts")}</p> : error ? <p className="admin-error">{error}</p> : products.length === 0 ? <p className="empty-state">{t(lang, "noProducts")}</p> : <div className="customer-product-list">{products.map((product) => {

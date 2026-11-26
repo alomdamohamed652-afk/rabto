@@ -26,3 +26,19 @@ test("render escapes HTML and emits no script", () => {
   assert.ok(!/<script/i.test(html)); assert.ok(!html.includes("<b>t</b>")); assert.ok(html.includes("&lt;script&gt;"));
   assert.ok(!html.includes('"><img>'));
 });
+
+test("menu block: validates prices, hides unavailable items, escapes", () => {
+  const good = { blocks: [{ type: "menu", title: "Menu", currency: "EGP", sections: [{ name: "Drinks", items: [
+    { name: "Tea <b>", description: "hot", priceMinor: 2500, available: true },
+    { name: "Hidden", priceMinor: 100, available: false }] }] }] };
+  const r = validatePageContent(good);
+  assert.equal(r.ok, true);
+  const html = renderPageHtml({ title: "T", content: r.value, lang: "en" });
+  assert.ok(html.includes("Tea &lt;b&gt;"));
+  assert.ok(!html.includes("Hidden"));
+  for (const bad of [{ priceMinor: 1.5 }, { priceMinor: -1 }, { priceMinor: 1e12 }, { available: "yes" }, { imageUrl: "http://x.com/a.png" }, { name: "" }]) {
+    const it = { name: "A", priceMinor: 100, available: true, ...bad };
+    assert.equal(validatePageContent({ blocks: [{ type: "menu", currency: "EGP", sections: [{ name: "S", items: [it] }] }] }).ok, false, JSON.stringify(bad));
+  }
+  assert.equal(validatePageContent({ blocks: [{ type: "menu", currency: "egp", sections: [] }] }).ok, false);
+});

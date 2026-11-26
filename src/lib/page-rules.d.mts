@@ -3,7 +3,8 @@ export type PageBlock =
   | { type: "text"; text: string }
   | { type: "link"; label: string; url: string }
   | { type: "image"; url: string; alt: string }
-  | { type: "divider" };
+  | { type: "divider" }
+  | { type: "menu"; title: string; currency: string; sections: { name: string; items: { name: string; description: string; priceMinor: number; available: boolean; imageUrl?: string }[] }[] };
 export type PageContent = { blocks: PageBlock[] };
 export const PAGE_LIMITS: Record<string, number>;
 export const PAGE_CSP: string;
