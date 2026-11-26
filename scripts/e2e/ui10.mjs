@@ -3,7 +3,8 @@ import { createRequire } from "node:module"; const puppeteer=createRequire("/tmp
 const B=process.env.E2E_BASE_URL;
 async function call(path,{method='GET',body,cookie}={}){const r=await fetch(B+path,{method,headers:{...(body?{'content-type':'application/json'}:{}),...(cookie?{cookie}:{})},body:body?JSON.stringify(body):undefined});let j=null;try{j=await r.json()}catch{}return{s:r.status,j,cookie:(r.headers.get('set-cookie')||'').split(';')[0]}}
 const A=(await call('/api/auth/login',{method:'POST',body:{email:'admin@test.local',password:'Admin-Test-Pass-123'}})).cookie;
-await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'demo@gmail.com',workspaceName:'Demo co',workspaceSlug:'demo-co',phone:'01022223333'}});
+const cc=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'demo@gmail.com',workspaceName:'Demo co',workspaceSlug:'demo-co',phone:'01022223333'}});
+const acc=await call('/api/auth/accept-invitation',{method:'POST',body:{token:new URL(cc.j.invitation.url).searchParams.get('token'),password:'Demo-Pass-123456'}});
 const br=await puppeteer.launch({executablePath:'/usr/bin/google-chrome',args:['--no-sandbox'],headless:'new'});
 const pg=await br.newPage();await pg.setViewport({width:390,height:844,deviceScaleFactor:2});
 await pg.goto(B+'/forgot-password',{waitUntil:'networkidle0'});
@@ -17,4 +18,9 @@ const ap=await br.newPage();await ap.setViewport({width:1280,height:900});
 await ap.setCookie({name:A.split('=')[0],value:A.split('=').slice(1).join('='),url:B});
 await ap.goto(B+'/admin',{waitUntil:'networkidle0'});await new Promise(r=>setTimeout(r,800));
 const el=await ap.$('#recovery');console.log('admin panel present',!!el);if(el){await el.screenshot({path:'/downloads/recovery-admin-queue.png'});}
+const cp=await br.newPage();await cp.setViewport({width:390,height:900,deviceScaleFactor:2});
+const C=acc.cookie;await cp.setCookie({name:C.split('=')[0],value:C.split('=').slice(1).join('='),url:B});
+await cp.goto(B+'/app',{waitUntil:'networkidle0'});await new Promise(r=>setTimeout(r,800));
+const ev=await cp.$('#email-verify');console.log('verify panel present',!!ev);
+if(ev){await (await ev.$('button.admin-primary')).click();await new Promise(r=>setTimeout(r,1200));console.log('inactive-mail message shown',(await ev.evaluate(e=>e.innerText)).includes('مش مفعّل'));await ev.screenshot({path:'/downloads/email-verify-panel.png'});}
 await br.close();

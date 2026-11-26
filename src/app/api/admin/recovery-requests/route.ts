@@ -21,17 +21,17 @@ export async function GET(request: Request) {
   try {
     const q = getDb().select({ id: recoveryRequests.id, status: recoveryRequests.status, phone: recoveryRequests.phone, note: recoveryRequests.note, createdAt: recoveryRequests.createdAt, decidedAt: recoveryRequests.decidedAt, decisionNote: recoveryRequests.decisionNote, email: users.email })
       .from(recoveryRequests).innerJoin(users, eq(users.id, recoveryRequests.userId));
-    const rows = await (status === "open" || status === "resolved" || status === "rejected" ? q.where(eq(recoveryRequests.status, status)) : q).orderBy(desc(recoveryRequests.createdAt)).limit(200);
+    const rows = await (status === "open" || status === "contacted" || status === "rejected" ? q.where(eq(recoveryRequests.status, status)) : q).orderBy(desc(recoveryRequests.createdAt)).limit(200);
     return NextResponse.json({ requests: rows });
   } catch { return NextResponse.json({ error: "Unable to load requests." }, { status: 500 }); }
 }
 
-/** PUT {id, decision: "resolved"|"rejected", note?}: records the admin's manual decision only. */
+/** PUT {id, decision: "contacted"|"rejected", note?}: records the admin's manual decision only. */
 export async function PUT(request: Request) {
   const a = await admin(request); if (!a.userId) return a.res;
   let body: { id?: unknown; decision?: unknown; note?: unknown };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request." }, { status: 400 }); }
-  if (typeof body.id !== "string" || !/^[0-9a-f-]{36}$/i.test(body.id) || (body.decision !== "resolved" && body.decision !== "rejected")) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
+  if (typeof body.id !== "string" || !/^[0-9a-f-]{36}$/i.test(body.id) || (body.decision !== "contacted" && body.decision !== "rejected")) return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   const note = typeof body.note === "string" ? body.note.trim().slice(0, 500) : "";
   try {
     const db = getDb();

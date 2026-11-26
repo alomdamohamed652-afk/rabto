@@ -21,12 +21,12 @@ chk('duplicate request keeps one open row, same answer',dup.s===200&&JSON.string
 chk('invalid phone rejected',(await R('abc','x','10.7.1.4')).s===400);
 chk('request changes no password, session or mail',q("select password_hash from users where email='rq@gmail.com'")===hash0&&q("select session_epoch from users where email='rq@gmail.com'")===epoch0&&mails().length===0);
 chk('customer session still valid after request',(await call('/api/customer/email-verification',{cookie:cust})).s===200);
-chk('queue needs admin: anonymous 401, customer 403',(await call('/api/admin/recovery-requests')).s===401&&(await call('/api/admin/recovery-requests',{cookie:cust})).s===403&&(await call('/api/admin/recovery-requests',{method:'PUT',cookie:cust,body:{id:'00000000-0000-0000-0000-000000000000',decision:'resolved'}})).s===403);
+chk('queue needs admin: anonymous 401, customer 403',(await call('/api/admin/recovery-requests')).s===401&&(await call('/api/admin/recovery-requests',{cookie:cust})).s===403&&(await call('/api/admin/recovery-requests',{method:'PUT',cookie:cust,body:{id:'00000000-0000-0000-0000-000000000000',decision:'contacted'}})).s===403);
 const lst=await call('/api/admin/recovery-requests?status=open',{cookie:A});const id=lst.j.requests?.[0]?.id;
 chk('admin sees the open request with account email and note',lst.s===200&&lst.j.requests.length===1&&lst.j.requests[0].email==='rq@gmail.com'&&lst.j.requests[0].note==='I lost my email access');
-chk('invalid decision and bad id rejected',(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'reset_now'}})).s===400&&(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id:'nope',decision:'resolved'}})).s===400);
-const dec=await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'resolved',note:'called customer'}});
-chk('admin decision recorded with audit row, password untouched',dec.s===200&&q("select status from recovery_requests")==='resolved'&&q("select count(*) from audit_logs where action in ('recovery_request.created','recovery_request.resolved')")==='2'&&q("select password_hash from users where email='rq@gmail.com'")===hash0);
+chk('invalid decision and bad id rejected',(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'reset_now'}})).s===400&&(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id:'nope',decision:'contacted'}})).s===400);
+const dec=await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'contacted',note:'called customer'}});
+chk('admin decision recorded with audit row, password untouched',dec.s===200&&q("select status from recovery_requests")==='contacted'&&q("select count(*) from audit_logs where action in ('recovery_request.created','recovery_request.contacted')")==='2'&&q("select password_hash from users where email='rq@gmail.com'")===hash0);
 const again=await R('01044445555','y'.repeat(900),'10.7.1.5');
 chk('after a decision a new request can be opened',again.s===200&&q("select count(*) from recovery_requests where status='open'")==='1');
 let n429=0;for(let i=0;i<5;i++){const x=await R('01044445555','x','10.7.2.'+i);if(x.s===429)n429++;}
