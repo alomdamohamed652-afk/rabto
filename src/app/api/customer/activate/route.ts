@@ -1,7 +1,9 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
 import { auditLogs, productClaims, productCodes, products, workspaceMembers } from "@/db/schema";
+import { entitlementsFor, lockWorkspace } from "@/lib/plans";
+import { canAddMore } from "@/lib/plan-rules.mjs";
 import { readSessionCookie } from "@/lib/auth";
 import { clientIpFromForwardedFor, rateLimitHash, constantTimeHexEqual } from "@/lib/security-primitives.mjs";
 import { activeLock, clearRateLimitKey, readRateLimitRows, recordRateLimitFailure, type RateLimitKey } from "@/lib/persistent-rate-limit";
@@ -40,6 +42,12 @@ export async function POST(request: Request) {
         .where(and(eq(workspaceMembers.userId, userId), eq(workspaceMembers.workspaceId, workspaceId), eq(productCodes.publicCode, publicCode))).limit(1);
       if (!candidate || !constantTimeHexEqual(candidate.activationSecretHash, activationSecret)) return { kind: "not-found" as const };
       if (candidate.activatedAt) return { kind: "conflict" as const };
+      await lockWorkspace(tx, workspaceId);
+      const ent = await entitlementsFor(tx, workspaceId);
+      if (ent.maxActivatedProducts !== null) {
+        const [{ n }] = await tx.select({ n: count() }).from(productClaims).where(eq(productClaims.workspaceId, workspaceId));
+        if (!canAddMore(ent.maxActivatedProducts, n)) return { kind: "limit" as const };
+      }
       const activated = await tx.update(productCodes).set({ activatedAt: new Date(), updatedAt: new Date() })
         .where(and(eq(productCodes.productId, candidate.productId), isNull(productCodes.activatedAt))).returning({ id: productCodes.id });
       if (!activated.length) return { kind: "conflict" as const };
@@ -52,6 +60,7 @@ export async function POST(request: Request) {
       await recordRateLimitFailure(db, key, 10, 900);
       return NextResponse.json(NOT_FOUND, { status: 404 });
     }
+    if (result.kind === "limit") { await clearRateLimitKey(db, key); return NextResponse.json({ error: "Your plan's limit for activated products is reached.", code: "plan_limit" }, { status: 403 }); }
     if (result.kind === "conflict") return NextResponse.json({ error: "Product is already activated." }, { status: 409 });
     await clearRateLimitKey(db, key);
     return NextResponse.json({ success: true, productId: result.productId }, { status: 200 });

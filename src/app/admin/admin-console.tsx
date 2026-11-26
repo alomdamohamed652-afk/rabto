@@ -7,6 +7,8 @@ import type { FormEvent } from "react";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t } from "@/lib/i18n/messages";
 import CodeTools from "./code-tools";
+import PlansPanel from "./plans-panel";
+import type { PlanRow } from "./plans-panel";
 
 type Customer = {
   userId: string; email: string; createdAt: string;
@@ -32,6 +34,10 @@ export default function AdminConsole() {
   const [issuedCodes, setIssuedCodes] = useState<ProvisionResult["codes"]>([]);
 
   const [email, setEmail] = useState("");
+  const [plansList, setPlansList] = useState<PlanRow[]>([]);
+  const [newPlanId, setNewPlanId] = useState("");
+  const loadPlans = useCallback(async () => { const r = await fetch("/api/admin/plans", { cache: "no-store" }); if (r.ok) setPlansList((await r.json()).plans); }, []);
+  useEffect(() => { let live = true; fetch("/api/admin/plans", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (live && j) setPlansList(j.plans); }).catch(() => {}); return () => { live = false; }; }, []);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceSlug, setWorkspaceSlug] = useState("");
   const [typeName, setTypeName] = useState("");
@@ -108,7 +114,7 @@ export default function AdminConsole() {
   async function submitCustomer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError(""); setNotice(""); setInviteUrl("");
     try {
-      const response = await fetch("/api/admin/customers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, workspaceName, workspaceSlug }) });
+      const response = await fetch("/api/admin/customers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, workspaceName, workspaceSlug, planId: newPlanId || undefined }) });
       const data = await response.json() as InvitationResult & { error?: string };
       if (!response.ok) throw new Error(data.error || t(lang, "createCustomerError"));
       setInviteUrl(data.invitation.url);
@@ -178,6 +184,7 @@ export default function AdminConsole() {
               <label>{t(lang, "email")}<input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com" /></label>
               <label>{t(lang, "workspaceName")}<input required minLength={2} maxLength={120} value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} placeholder={t(lang, "customerNamePlaceholder")} /></label>
               <label>{t(lang, "workspaceSlug")}<input required minLength={3} maxLength={80} inputMode="text" autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={workspaceSlug} onChange={(e) => setWorkspaceSlug(e.target.value)} placeholder="business-name" dir="ltr" /></label>
+              <label>{lang === "en" ? "Plan (optional)" : "الباقة (اختياري)"}<select value={newPlanId} onChange={(e) => setNewPlanId(e.target.value)}><option value="">{lang === "en" ? "No plan yet" : "بدون باقة حاليًا"}</option>{plansList.filter((p) => p.isActive).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
               <button className="admin-primary" disabled={busy}>{t(lang, "createAccountInvite")} <span>←</span></button>
             </form>
           </section>
@@ -187,6 +194,7 @@ export default function AdminConsole() {
             {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? t(lang, "loadingMore") : t(lang, "showMoreCustomers")}</button>}
           </section>
         </div>
+        <PlansPanel plans={plansList} customers={customers} lang={lang === "en" ? "en" : "ar"} onChanged={() => void loadPlans()} />
         <section className="admin-panel provisioning-panel" id="provisioning">
           <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "productOperations")}</span><h2>{t(lang, "productOperationsLabel")}</h2><p>{t(lang, "productOperationsDescription")}</p></div><span className="panel-index">03</span></div>
           <div className="selected-customer"><label>{t(lang, "workspaceSection")}<select value={selectedWorkspace} onChange={(e) => setSelectedWorkspace(e.target.value)}><option value="">{t(lang, "chooseCustomer")}</option>{customers.map((c) => <option key={c.workspaceId} value={c.workspaceId}>{c.workspaceName}</option>)}</select></label><span>{customers.find((c) => c.workspaceId === selectedWorkspace)?.email || t(lang, "noCustomerSelected")}</span></div>

@@ -299,3 +299,35 @@ export const dailyScanStats = pgTable("daily_scan_stats", {
   primaryKey({ name: "daily_scan_stats_pk", columns: [t.workspaceId, t.productId, t.channel, t.day] }),
   index("daily_scan_stats_workspace_day_idx").on(t.workspaceId, t.day)
 ]);
+
+export const subscriptionStatus = pgEnum("subscription_status", ["active", "expired", "cancelled"]);
+
+export const plans = pgTable("plans", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 80 }).notNull(),
+  description: text("description").notNull().default(""),
+  priceNote: varchar("price_note", { length: 160 }),
+  includedCredits: integer("included_credits").notNull().default(0),
+  // Typed, server-enforced entitlements. NULL means "no limit set".
+  maxActivatedProducts: integer("max_activated_products"),
+  maxPages: integer("max_pages"),
+  analyticsEnabled: boolean("analytics_enabled").notNull().default(true),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
+}, (t) => [
+  uniqueIndex("plans_name_unique").on(t.name),
+  check("plans_included_credits_nonnegative", sql`${t.includedCredits} >= 0`),
+  check("plans_max_products_nonnegative", sql`${t.maxActivatedProducts} is null or ${t.maxActivatedProducts} >= 0`),
+  check("plans_max_pages_nonnegative", sql`${t.maxPages} is null or ${t.maxPages} >= 0`)
+]);
+
+export const workspaceSubscriptions = pgTable("workspace_subscriptions", {
+  workspaceId: uuid("workspace_id").primaryKey().references(() => workspaces.id, { onDelete: "cascade" }),
+  planId: uuid("plan_id").notNull().references(() => plans.id),
+  status: subscriptionStatus("status").notNull().default("active"),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull().defaultNow(),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  assignedBy: uuid("assigned_by").references(() => users.id),
+  updatedAt: updatedAt()
+});

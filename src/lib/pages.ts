@@ -1,9 +1,11 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { digitalPages, digitalPageVersions, workspaces } from "@/db/schema";
+import { entitlementsFor, lockWorkspace } from "@/lib/plans";
+import { canAddMore } from "@/lib/plan-rules.mjs";
 import type { PageContent } from "@/lib/page-rules.mjs";
 
-export type SaveDraftResult = { kind: "ok"; pageId: string } | { kind: "slug-taken" } | { kind: "not-found" };
+export type SaveDraftResult = { kind: "ok"; pageId: string } | { kind: "slug-taken" } | { kind: "not-found" } | { kind: "plan-limit" };
 
 export async function saveDraft(input: { workspaceId: string; pageId?: string; slug: string; title: string; content: PageContent }): Promise<SaveDraftResult> {
   const db = getDb();
@@ -15,9 +17,17 @@ export async function saveDraft(input: { workspaceId: string; pageId?: string; s
         .returning({ id: digitalPages.id });
       return rows[0] ? { kind: "ok", pageId: rows[0].id } : { kind: "not-found" };
     }
-    const [row] = await db.insert(digitalPages).values({ workspaceId: input.workspaceId, slug: input.slug, title: input.title, draftContent: input.content })
-      .returning({ id: digitalPages.id });
-    return { kind: "ok", pageId: row.id };
+    return await db.transaction(async (tx): Promise<SaveDraftResult> => {
+      await lockWorkspace(tx, input.workspaceId);
+      const ent = await entitlementsFor(tx, input.workspaceId);
+      if (ent.maxPages !== null) {
+        const [{ n }] = await tx.select({ n: count() }).from(digitalPages).where(eq(digitalPages.workspaceId, input.workspaceId));
+        if (!canAddMore(ent.maxPages, n)) return { kind: "plan-limit" };
+      }
+      const [row] = await tx.insert(digitalPages).values({ workspaceId: input.workspaceId, slug: input.slug, title: input.title, draftContent: input.content })
+        .returning({ id: digitalPages.id });
+      return { kind: "ok", pageId: row.id };
+    });
   } catch (e) {
     if ((e as { code?: string; cause?: { code?: string } }).code === "23505" || (e as { cause?: { code?: string } }).cause?.code === "23505") return { kind: "slug-taken" };
     throw e;

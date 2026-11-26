@@ -39,6 +39,7 @@ export async function POST(request: Request) {
   try {
     const r = await saveDraft({ workspaceId: body.workspaceId as string, pageId: body.pageId as string | undefined, slug: body.slug as string, title, content: content.value });
     if (r.kind === "slug-taken") return NextResponse.json({ error: "Slug already used in this workspace." }, { status: 409 });
+    if (r.kind === "plan-limit") return NextResponse.json({ error: "Your plan's limit for menu pages is reached.", code: "plan_limit" }, { status: 403 });
     if (r.kind === "not-found") return NextResponse.json({ error: "Page not found." }, { status: 404 });
     return NextResponse.json({ pageId: r.pageId }, { status: body.pageId ? 200 : 201 });
   } catch { return NextResponse.json({ error: "Unable to save page." }, { status: 500 }); }

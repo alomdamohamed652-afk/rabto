@@ -12,11 +12,11 @@ const errs=[];pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 await pg.goto(B+'/admin',{waitUntil:'networkidle0'});
 await pg.evaluate(()=>{const r=[...document.querySelectorAll('.customer-row')].find(x=>x.textContent.includes('cd-a')||x.textContent.includes('Cd a'))||document.querySelector('.customer-row');r.click()});await sleep(1200);
-await pg.evaluate(()=>{const s=document.querySelector('select[required]');s.scrollIntoView();});
-const opts=await pg.$$eval('select[required] option',o=>o.map(x=>x.value).filter(Boolean));log('product types offered',String(opts.length));
-await pg.select('select[required]',opts[0]);
+await pg.evaluate(()=>{const s=document.querySelector('#provisioning select[required]');s.scrollIntoView();});
+const opts=await pg.$$eval('#provisioning select[required] option',o=>o.map(x=>x.value).filter(Boolean));log('product types offered',String(opts.length));
+await pg.select('#provisioning select[required]',opts[0]);
 await pg.evaluate(()=>{const e=document.querySelector('input[placeholder="BATCH-001"]');e.scrollIntoView({block:'center'});e.focus()});await pg.keyboard.type('QR-1');
-await pg.evaluate(()=>{const e=document.querySelector('input[type=number]');e.focus();e.select()});await pg.keyboard.type('1');
+await pg.evaluate(()=>{const e=document.querySelector('#provisioning input[type=number]');e.focus();e.select()});await pg.keyboard.type('1');
 await pg.evaluate(()=>{const e=document.querySelector('input[type=url]');e.focus();e.select()});await pg.keyboard.type('https://example.com/menu');
 await pg.evaluate(()=>{document.querySelector('.admin-primary:not([type=button])').scrollIntoView({block:'center'});});await sleep(400);
 await pg.evaluate(()=>document.querySelector('input[placeholder="BATCH-001"]').form.querySelector('.admin-primary').click());await sleep(3000);
