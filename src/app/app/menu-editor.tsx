@@ -9,7 +9,7 @@ type Lang = "ar" | "en";
 
 const T = {
   ar: {
-    heading: "المنيو والصفحات الرقمية", intro: "عدّل المنيو كمسودة، وبعد ما تراجعه انشره. الزبون يشوف آخر نسخة منشورة فقط.",
+    kicker: "المنيو", heading: "المنيو والصفحات الرقمية", intro: "عدّل المنيو كمسودة، وبعد ما تراجعه انشره. الزبون يشوف آخر نسخة منشورة فقط.",
     newMenu: "منيو جديد", title: "اسم الصفحة", slug: "رابط الصفحة (حروف إنجليزية صغيرة وأرقام)", currency: "العملة (3 حروف، مثل EGP)",
     section: "قسم", sectionName: "اسم القسم", addSection: "إضافة قسم", item: "صنف", itemName: "اسم الصنف", desc: "وصف (اختياري)",
     price: "السعر", photo: "رابط صورة https (اختياري)", available: "متاح", remove: "حذف", addItem: "إضافة صنف",
@@ -18,7 +18,7 @@ const T = {
     note: "الصور بروابط https فقط حاليًا. لا يوجد طلب أو دفع أونلاين.",
   },
   en: {
-    heading: "Menus and digital pages", intro: "Edit the menu as a draft, then publish it. Visitors only see the latest published version.",
+    kicker: "MENUS", heading: "Menus and digital pages", intro: "Edit the menu as a draft, then publish it. Visitors only see the latest published version.",
     newMenu: "New menu", title: "Page name", slug: "Page link (lowercase letters and numbers)", currency: "Currency (3 letters, e.g. EGP)",
     section: "Section", sectionName: "Section name", addSection: "Add section", item: "Item", itemName: "Item name", desc: "Description (optional)",
     price: "Price", photo: "Photo link, https (optional)", available: "Available", remove: "Remove", addItem: "Add item",
@@ -115,7 +115,7 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
   const setItem = (si: number, ii: number, patch: Partial<Item>) => setSections((cur) => cur.map((s, a) => a !== si ? s : { ...s, items: s.items.map((it, b) => b === ii ? { ...it, ...patch } : it) }));
 
   return <section className="admin-panel menu-editor" id="menus" dir={lang === "ar" ? "rtl" : "ltr"}>
-    <div className="panel-heading"><div><span className="panel-kicker">MENUS</span><h2>{t.heading}</h2><p>{t.intro}</p></div>
+    <div className="panel-heading"><div><span className="panel-kicker">{t.kicker}</span><h2>{t.heading}</h2><p>{t.intro}</p></div>
       {!editing && <button type="button" className="menu-btn solid" onClick={startNew}>{t.newMenu}</button>}</div>
     {error && <p className="admin-error" role="alert">{error}</p>}
     {!editing && (pages === null ? <p className="empty-state">{t.loading}</p> : pages.length === 0 ? <p className="empty-state">{t.none}</p> :
