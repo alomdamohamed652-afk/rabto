@@ -79,7 +79,7 @@ export default function InsightsPanel({ workspaceId, lang = "ar" }: { workspaceI
       <h4>{t.accounts}</h4>
       {credits.accounts.length === 0 ? <p className="empty-state">{t.noAccounts}</p> : <div className="menu-list">{credits.accounts.map((a) => <div className="menu-row" key={a.accountId}><div><strong dir="ltr">{sku(a.productId)}</strong><small dir="ltr">{a.channel.toUpperCase()}</small></div><span className="menu-badge" dir="ltr">{t.balance} {a.balance}</span></div>)}</div>}
       <h4>{t.recent}</h4>
-      {credits.recent.length === 0 ? <p className="empty-state">{t.noEntries}</p> : <div className="menu-list">{credits.recent.map((e, i) => <div className="menu-row" key={i}><div><strong dir="ltr">{e.amount > 0 ? "+" : ""}{e.amount}</strong><small>{t.types[e.entryType] || e.entryType}{e.reason ? " · " + e.reason : ""}</small><small dir="ltr">{new Date(e.createdAt).toISOString().slice(0, 16).replace("T", " ")} · {t.after} {e.balanceAfter}</small></div></div>)}</div>}
+      {credits.recent.length === 0 ? <p className="empty-state">{t.noEntries}</p> : <div className="menu-list">{credits.recent.map((e, i) => <div className="menu-row" key={i}><div><strong dir="ltr">{e.amount > 0 ? "+" : ""}{e.amount}</strong><small>{t.types[e.entryType] || e.entryType}{e.reason ? " · " + e.reason : ""}</small><small dir="ltr">{new Date(e.createdAt).toISOString().slice(0, 16).replace("T", " ")} UTC · {t.after} {e.balanceAfter}</small></div></div>)}</div>}
     </>}
   </section>;
 }
