@@ -1,12 +1,12 @@
 /* Public plans page. Uses only the existing identity tokens (ink, sage, paper). */
-.pl-shell{--fs-xs:clamp(.875rem,.85rem + .12vw,.9375rem);--fs-sm:clamp(1rem,.96rem + .16vw,1.0625rem);--fs-md:clamp(1.125rem,1.06rem + .24vw,1.3125rem);--fs-lg:clamp(1.25rem,1.14rem + .45vw,1.5rem);--ink-soft:#35342e;min-height:100vh;background:var(--paper);color:var(--ink);overflow:hidden;position:relative}
+.pl-shell{--muted:#62675d;--sage-ink:#526849;--fs-xs:clamp(.875rem,.85rem + .12vw,.9375rem);--fs-sm:clamp(1rem,.96rem + .16vw,1.0625rem);--fs-md:clamp(1.125rem,1.06rem + .24vw,1.3125rem);--fs-lg:clamp(1.25rem,1.14rem + .45vw,1.5rem);--ink-soft:#35342e;min-height:100vh;background:var(--paper);color:var(--ink);overflow:hidden;position:relative}
 .pl-shell::before,.pl-shell::after{content:"";position:absolute;border:2px solid var(--sage);border-radius:50%;pointer-events:none;opacity:.7}
 .pl-shell::before{width:clamp(220px,38vw,520px);aspect-ratio:1;top:clamp(70px,8vw,110px);inset-inline-end:-10vw;z-index:0}
 .pl-shell::after{width:clamp(120px,20vw,280px);aspect-ratio:1;top:clamp(160px,17vw,240px);inset-inline-end:4vw;z-index:0;border-color:var(--sage-deep);opacity:.5}
 .pl-wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 clamp(18px,5vw,48px) 72px}
 .pl-top{position:relative;z-index:2;height:84px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .pl-hero{padding:clamp(28px,6vw,72px) 0 clamp(28px,5vw,56px);max-width:760px}
-.pl-kicker{display:inline-flex;align-items:center;gap:10px;margin:0 0 18px;font:700 var(--fs-xs)/1 Manrope,sans-serif;letter-spacing:.18em;color:var(--sage-deep)}
+.pl-kicker{display:inline-flex;align-items:center;gap:10px;margin:0 0 18px;font:700 var(--fs-xs)/1 Manrope,sans-serif;letter-spacing:.18em;color:var(--sage-ink)}
 .pl-kicker::before{content:"";width:28px;height:2px;background:var(--sage-deep)}
 .pl-hero h1{margin:0 0 16px;font-size:clamp(2.25rem,1.5rem + 4vw,4.5rem);line-height:1.08;letter-spacing:-.03em;font-weight:800}
 .pl-hero p{margin:0;font-size:var(--fs-lg);line-height:1.8;color:var(--ink-soft);max-width:56ch}
@@ -25,8 +25,8 @@
 .pl-metric b{display:block;font:800 clamp(1.75rem,1.4rem + 1.5vw,2.5rem)/1 Manrope,sans-serif;letter-spacing:-.04em;direction:ltr;text-align:start}
 .pl-metric span{display:block;margin-top:8px;font-size:var(--fs-sm);font-weight:600;color:var(--ink);line-height:1.5}
 .pl-an{display:flex;align-items:center;gap:12px;padding-top:14px;border-top:1px solid var(--line);font-weight:600;font-size:var(--fs-md)}
-.pl-dot{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--sage-deep);color:#fff;font-size:15px;line-height:1}
-.pl-dot.off{background:transparent;border:2px solid var(--line);color:var(--muted)}
+.pl-dot{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--sage-ink);color:#fff;font-size:15px;line-height:1}
+.pl-dot.off{background:transparent;border:2px solid var(--muted);color:var(--muted)}
 .pl-compare{margin-top:clamp(36px,6vw,72px)}
 .pl-compare h2{margin:0 0 18px;font-size:var(--fs-xl);letter-spacing:-.02em}
 .pl-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:#fbfaf6}
@@ -55,3 +55,7 @@
   .pl-table tbody tr td:last-child{border-bottom:0}
   .pl-table tbody td::before{content:attr(data-label);font-weight:700;overflow-wrap:anywhere}
 }
+/* Arabic: negative tracking joins letters badly and tight line height clips tall glyphs, so reset both in RTL. */
+.pl-shell[dir=rtl] .pl-hero h1,.pl-shell[dir=rtl] .pl-name,.pl-shell[dir=rtl] .pl-compare h2,.pl-shell[dir=rtl] .pl-empty b,.pl-shell[dir=rtl] .pl-metric b{letter-spacing:0}
+.pl-shell[dir=rtl] .pl-hero h1{line-height:1.3}
+.pl-shell[dir=rtl] .pl-name{line-height:1.3}

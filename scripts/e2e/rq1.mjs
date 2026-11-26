@@ -28,6 +28,7 @@ chk('invalid decision and bad id rejected',(await call('/api/admin/recovery-requ
 const dec=await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'contacted',note:'called customer'}});
 chk('admin decision recorded with audit row, password untouched',dec.s===200&&q("select status from recovery_requests")==='contacted'&&q("select count(*) from audit_logs where action in ('recovery_request.created','recovery_request.contacted')")==='2'&&q("select password_hash from users where email='rq@gmail.com'")===hash0);
 chk('re-deciding a decided request is refused (409) and the first decision stands',(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id,decision:'rejected'}})).s===409&&q("select status from recovery_requests where id='"+id+"'")==='contacted');
+chk('PUT needs admin: anonymous 401, customer 403, valid-looking missing id 404',(await call('/api/admin/recovery-requests',{method:'PUT',body:{id,decision:'contacted'}})).s===401&&(await call('/api/admin/recovery-requests',{method:'PUT',cookie:cust,body:{id,decision:'contacted'}})).s===403&&(await call('/api/admin/recovery-requests',{method:'PUT',cookie:A,body:{id:'00000000-0000-4000-8000-000000000000',decision:'contacted'}})).s===404);
 const again=await R('01044445555','y'.repeat(900),'10.7.1.5');
 chk('after a decision a new request can be opened',again.s===200&&q("select count(*) from recovery_requests where status='open'")==='1');
 let n429=0;for(let i=0;i<5;i++){const x=await R('01044445555','x','10.7.2.'+i);if(x.s===429)n429++;}
