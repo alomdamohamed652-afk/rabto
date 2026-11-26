@@ -41,3 +41,17 @@
 .pl-empty p{margin:0;color:var(--ink-soft);line-height:1.8}
 .pl-back{display:inline-block;margin-top:40px;font-weight:600;border-bottom:2px solid var(--sage-deep);padding-bottom:3px}
 @media (prefers-reduced-motion:reduce){.pl-card{transition:none}.pl-card:hover{transform:none}}
+
+/* Mobile: the comparison becomes one block per feature, every plan listed with its name, so no plan is ever off screen. */
+@media (max-width:640px){
+  .pl-shell::before,.pl-shell::after{display:none}
+  .pl-tablewrap{overflow:visible;border:0;background:transparent}
+  .pl-table{min-width:0;display:block}
+  .pl-table thead{display:none}
+  .pl-table tbody{display:grid;gap:14px}
+  .pl-table tbody tr{display:block;border:1px solid var(--line);border-radius:6px;background:#fbfaf6;overflow:hidden}
+  .pl-table tbody th{display:block;background:var(--sage-pale);border-bottom:1px solid var(--line)}
+  .pl-table tbody td{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line)}
+  .pl-table tbody tr td:last-child{border-bottom:0}
+  .pl-table tbody td::before{content:attr(data-label);font-weight:700;overflow-wrap:anywhere}
+}

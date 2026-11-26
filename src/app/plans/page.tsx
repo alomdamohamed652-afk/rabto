@@ -57,9 +57,9 @@ export default function PlansPage() {
                   <table className="pl-table">
                     <thead><tr><th scope="col">{t.plan}</th>{rows.map((p) => <th key={p.name} scope="col">{p.name}</th>)}</tr></thead>
                     <tbody>
-                      <tr><th scope="row">{t.products}</th>{rows.map((p) => <td key={p.name}>{p.maxActivatedProducts ?? t.unlimited}</td>)}</tr>
-                      <tr><th scope="row">{t.pages}</th>{rows.map((p) => <td key={p.name}>{p.maxPages ?? t.unlimited}</td>)}</tr>
-                      <tr><th scope="row">{t.analytics}</th>{rows.map((p) => <td key={p.name}>{p.analyticsEnabled ? t.on : t.off}</td>)}</tr>
+                      <tr><th scope="row">{t.products}</th>{rows.map((p) => <td key={p.name} data-label={p.name}>{p.maxActivatedProducts ?? t.unlimited}</td>)}</tr>
+                      <tr><th scope="row">{t.pages}</th>{rows.map((p) => <td key={p.name} data-label={p.name}>{p.maxPages ?? t.unlimited}</td>)}</tr>
+                      <tr><th scope="row">{t.analytics}</th>{rows.map((p) => <td key={p.name} data-label={p.name}>{p.analyticsEnabled ? t.on : t.off}</td>)}</tr>
                     </tbody>
                   </table>
                 </div>

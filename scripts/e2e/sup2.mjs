@@ -17,5 +17,6 @@ const m1=await M('hello there'),m2=await M('hello there'),m3=await M('different 
 chk('retried identical reply stored once, different text stored',m1.s===201&&m2.s===201&&m3.s===201&&q("select count(*) from support_messages where ticket_id='"+id+"'")==='3');
 chk('five parallel identical replies store one',(await Promise.all(Array.from({length:5},()=>M('burst text')))).every(r=>r.s===201)&&q("select count(*) from support_messages where body='burst text'")==='1');
 let tk=0,c429=0;for(let i=0;i<14;i++){const r=await T('Flood '+i,'body '+i);if(r.s===201)tk++;else if(r.s===429)c429++;}
-chk('per-user ticket flood is limited (10 per hour)',c429>=1&&q("select count(*) from support_tickets")!=='' ,'created '+tk+' limited '+c429);
+// The earlier retried pair already used 2 of the 10 hourly allowance (the limiter counts calls, retries included), so 8 more succeed; the workspace open-ticket cap (20) is not the limiter here.
+chk('per-user ticket limit is exactly 10 calls per hour, then 429',tk===8&&c429===6&&Number(q("select count(*) from support_tickets where status<>'closed'"))<20,'created '+tk+' limited '+c429);
 console.log(out.join('\n'));process.exit(bad?1:0);

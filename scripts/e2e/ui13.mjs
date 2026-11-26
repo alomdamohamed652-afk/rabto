@@ -15,5 +15,7 @@ const m=await vp(390,844,'plans2-m.png');console.log('populated mobile',JSON.str
 const d=await vp(1440,900,'plans2-d.png');console.log('populated desktop',JSON.stringify(d));
 const t=await vp(768,1024,'plans2-t.png');console.log('tablet',JSON.stringify(t));
 await pg.evaluate(()=>{});await pg.goto(B+'/plans',{waitUntil:'networkidle0'});
+await pg.setViewport({width:390,height:844,deviceScaleFactor:1.5});await pg.goto(B+'/plans',{waitUntil:'networkidle0'});
+console.log('mobile table: every plan name visible in viewport width',JSON.stringify(await pg.evaluate(()=>[...document.querySelectorAll('.pl-table td')].map(td=>{const r=td.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&getComputedStyle(td,'::before').content.length>2;}).every(Boolean))),'rings hidden',await pg.evaluate(()=>getComputedStyle(document.querySelector('.pl-shell'),'::before').display));
 console.log('dir',await pg.evaluate(()=>document.querySelector('main').dir),'infinity shown',(await pg.evaluate(()=>document.body.innerText)).includes('∞'));
 await br.close();
