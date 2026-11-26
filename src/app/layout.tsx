@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
+import { getLang } from "@/lib/i18n/messages";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,9 +19,12 @@ export const viewport: Viewport = {
   initialScale: 1
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const lang = getLang(cookieStore.get("rabto_lang")?.value);
+
   return (
-    <html lang="ar" dir="rtl">
+    <html lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
       <body>{children}</body>
     </html>
   );
