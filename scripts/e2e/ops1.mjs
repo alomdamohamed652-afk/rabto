@@ -17,5 +17,11 @@ chk('restore into a scratch database reproduces the users row count',live===rest
 chk('scratch database is dropped afterwards',q("select count(*) from pg_database where datname='restore_check_t1'",'postgres')==='0');
 let refused=false;try{execFileSync('bash',['../ops/restore-verify.sh',dump,'rabto_e2e'],{env,stdio:'pipe'});}catch{refused=true;}
 chk('restore-verify refuses a non-scratch database name',refused&&q("select count(*) from users")===live);
+let again=false;try{execFileSync('bash',['../ops/restore-verify.sh',dump,'restore_check_t2'],{env,stdio:'pipe'});q("create database restore_check_t3",'postgres');execFileSync('bash',['../ops/restore-verify.sh',dump,'restore_check_t3'],{env,stdio:'pipe'});}catch{again=true;}
+chk('restore-verify refuses to drop an existing scratch database without the explicit flag',again&&q("select count(*) from pg_database where datname='restore_check_t3'",'postgres')==='1');
+q("drop database if exists restore_check_t3",'postgres');
+const hd=await fetch(B+'/login');
+chk('global headers on app pages (nosniff, referrer, frame, permissions)',hd.headers.get('x-content-type-options')==='nosniff'&&!!hd.headers.get('referrer-policy')&&hd.headers.get('x-frame-options')==='DENY'&&!!hd.headers.get('permissions-policy'));
+const ha=await fetch(B+'/api/health');chk('global headers on api routes',ha.headers.get('x-content-type-options')==='nosniff'&&ha.headers.get('x-frame-options')==='DENY');
 fs.rmSync(dir,{recursive:true,force:true});
 console.log(bad?'FAILED':'DONE');process.exit(bad);
