@@ -31,6 +31,7 @@ psql -q rabto_e2e -c "insert into users (email,password_hash,platform_role) valu
 export SESSION_SECRET="test-only-secret-test-only-secret-123"
 export ANALYTICS_CONSUMER_SECRET="e2e-analytics-secret-0123456789abcdef"
 export DATABASE_URL="postgres://postgres@127.0.0.1:$PORT_DB/rabto_e2e"
+export RABTO_E2E_ALLOW_SINK=1 RABTO_MAIL_SINK_FILE="$TMP/mail.jsonl" E2E_MAIL_SINK="$TMP/mail.jsonl"
 export E2E_BASE_URL="http://127.0.0.1:$PORT_APP"
 (cd "$RABTO_DIR" && exec node node_modules/next/dist/bin/next start -p "$PORT_APP" >"$TMP/next.log" 2>&1) &
 APP_PID=$!

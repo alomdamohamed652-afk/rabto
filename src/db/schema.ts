@@ -331,3 +331,13 @@ export const workspaceSubscriptions = pgTable("workspace_subscriptions", {
   assignedBy: uuid("assigned_by").references(() => users.id),
   updatedAt: updatedAt()
 });
+
+export const passwordResetCodes = pgTable("password_reset_codes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  codeHash: varchar("code_hash", { length: 64 }).notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: createdAt()
+}, (t) => [index("password_reset_codes_user_idx").on(t.userId, t.createdAt)]);

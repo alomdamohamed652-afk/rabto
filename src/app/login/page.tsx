@@ -49,6 +49,7 @@ export default function LoginPage() {
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="admin-primary" type="submit" disabled={busy}>{busy ? t(lang, "loggingIn") : t(lang, "login")} <span>←</span></button>
         </form>
+        <p className="auth-footnote"><Link href="/forgot-password">{lang === "en" ? "Forgot password?" : "نسيت كلمة المرور؟"}</Link></p>
         <p className="auth-footnote">{t(lang, "firstTime")}</p>
       </section>
     </main>
