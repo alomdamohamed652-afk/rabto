@@ -282,7 +282,9 @@ html[lang="en"] .auth-brand, html[lang="en"] .wordmark { font-family: Manrope, A
 .item-text { flex: 1; min-width: 120px; display: grid; gap: 2px; }
 .item-text b { font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; } .item-text small { color: var(--muted); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
 .item-price { flex: none; font-style: normal; font-weight: 700; font-size: 14px; padding: 5px 12px; border-radius: 12px; background: #e7ece1; unicode-bidi: isolate; }
-.item-card > .menu-btn { flex: 1 1 100%; justify-content: center; }
+.item-card { flex-wrap: nowrap; align-items: flex-start; } .item-card > .menu-btn { flex: none; min-height: 40px; padding: 8px 14px; } .item-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; }
+.item-block.open { padding: 4px; border-radius: 22px; background: #f1f0e8; } .item-block.open .menu-item { background: transparent; padding: 10px; }
+.menu-form { padding-bottom: 120px; }
 .item-block.open .item-card { box-shadow: 0 0 0 2px var(--sage-deep), 0 8px 22px rgba(32,35,31,.07); }
 .photo-preview { display: grid; gap: 6px; } .photo-preview .item-thumb { width: 120px; height: 120px; }
 .menu-preview { display: grid; gap: 10px; padding: 16px; border-radius: 20px; background: #f1f0e8; box-shadow: inset 0 2px 5px rgba(32,35,31,.06); }
@@ -292,3 +294,11 @@ html[lang="en"] .auth-brand, html[lang="en"] .wordmark { font-family: Manrope, A
 input:disabled, select:disabled, textarea:disabled { opacity: .55; cursor: not-allowed; }
 input:user-invalid, textarea:user-invalid, select:user-invalid { background: #fbeeea !important; box-shadow: inset 0 0 0 1px #c0553f !important; }
 ::placeholder { color: #a3a79b; }
+.menu-form input[type=checkbox], .customer-console input[type=checkbox] { width: 22px; height: 22px; min-height: 0; padding: 0; box-shadow: none; accent-color: #20231f; }
+.menu-preview .item-card { flex-wrap: wrap; } .menu-preview .item-text { min-width: 0; flex: 1 1 140px; }
+.admin-main, .admin-panel { min-width: 0; } .item-card { min-width: 0; max-width: 100%; }
+.menu-editor .item-card { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
+.menu-editor .item-card .item-text { min-width: 0; }
+.menu-editor .menu-preview .item-card { grid-template-columns: 64px minmax(0, 1fr); }
+.item-price { white-space: nowrap; } .menu-editor .menu-preview .item-price { grid-column: 2; justify-self: start; }
+.menu-editor .item-card > .menu-btn.small { padding: 8px 12px; }

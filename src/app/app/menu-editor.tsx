@@ -10,7 +10,7 @@ type Lang = "ar" | "en";
 const T = {
   ar: {
     kicker: "المنيو", heading: "المنيو والصفحات الرقمية", intro: "عدّل المنيو كمسودة، وبعد ما تراجعه انشره. الزبون يشوف آخر نسخة منشورة فقط.",
-    newMenu: "منيو جديد", editItem: "تعديل الصنف", done: "تم", preview: "معاينة المنيو", hidePreview: "إخفاء المعاينة", hiddenItem: "مخفي عن الزبون", noName: "صنف بدون اسم", previewNote: "هكذا يظهر المنيو للزبون بعد النشر. الأصناف المخفية لا تظهر.", photoPreview: "معاينة الصورة", photoBad: "الرابط لازم يكون https لصورة", title: "اسم الصفحة", slug: "رابط الصفحة (حروف إنجليزية صغيرة وأرقام)", currency: "العملة (3 حروف، مثل EGP)",
+    newMenu: "منيو جديد", editItem: "تعديل", done: "تم", preview: "معاينة المنيو", hidePreview: "إخفاء المعاينة", hiddenItem: "مخفي عن الزبون", noName: "صنف بدون اسم", previewNote: "هكذا يظهر المنيو للزبون بعد النشر. الأصناف المخفية لا تظهر.", photoPreview: "معاينة الصورة", photoBad: "الرابط لازم يكون https لصورة", title: "اسم الصفحة", slug: "رابط الصفحة (حروف إنجليزية صغيرة وأرقام)", currency: "العملة (3 حروف، مثل EGP)",
     section: "قسم", sectionName: "اسم القسم", addSection: "إضافة قسم", item: "صنف", itemName: "اسم الصنف", desc: "وصف (اختياري)",
     price: "السعر", photo: "رابط صورة https (اختياري)", available: "متاح", remove: "حذف", addItem: "إضافة صنف",
     save: "حفظ المسودة", publish: "نشر", saved: "تم حفظ المسودة.", published: "تم النشر. النسخة", draft: "مسودة", live: "منشور", unpublishedChanges: "فيه تعديلات لم تُنشر",
@@ -19,7 +19,7 @@ const T = {
   },
   en: {
     kicker: "MENUS", heading: "Menus and digital pages", intro: "Edit the menu as a draft, then publish it. Visitors only see the latest published version.",
-    newMenu: "New menu", editItem: "Edit item", done: "Done", preview: "Preview menu", hidePreview: "Hide preview", hiddenItem: "Hidden from guests", noName: "Unnamed item", previewNote: "This is how guests see the menu after publishing. Hidden items are not shown.", photoPreview: "Photo preview", photoBad: "Photo link must be an https image URL", title: "Page name", slug: "Page link (lowercase letters and numbers)", currency: "Currency (3 letters, e.g. EGP)",
+    newMenu: "New menu", editItem: "Edit", done: "Done", preview: "Preview menu", hidePreview: "Hide preview", hiddenItem: "Hidden from guests", noName: "Unnamed item", previewNote: "This is how guests see the menu after publishing. Hidden items are not shown.", photoPreview: "Photo preview", photoBad: "Photo link must be an https image URL", title: "Page name", slug: "Page link (lowercase letters and numbers)", currency: "Currency (3 letters, e.g. EGP)",
     section: "Section", sectionName: "Section name", addSection: "Add section", item: "Item", itemName: "Item name", desc: "Description (optional)",
     price: "Price", photo: "Photo link, https (optional)", available: "Available", remove: "Remove", addItem: "Add item",
     save: "Save draft", publish: "Publish", saved: "Draft saved.", published: "Published. Version", draft: "Draft", live: "Published", unpublishedChanges: "Has unpublished changes",
@@ -150,9 +150,8 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
         {s.items.map((it, ii) => { const k = si + "-" + ii; const isOpen = open === k; const price = toMinor(it.price); return <div className={"item-block" + (isOpen ? " open" : "")} key={ii}>
           <div className={"item-card" + (it.available ? "" : " off")}>
             <Thumb url={it.imageUrl} />
-            <span className="item-text"><b>{it.name || t.noName}</b>{it.description && <small>{it.description}</small>}{!it.available && <span className="menu-badge">{t.hiddenItem}</span>}</span>
-            <em className="item-price" dir="ltr">{price === null ? "-" : fromMinor(price)} {currency}</em>
-            <button type="button" className="menu-btn" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : k)}>{isOpen ? t.done : t.editItem}</button>
+            <span className="item-text"><b>{it.name || t.noName}</b>{it.description && <small>{it.description}</small>}<span className="item-meta"><em className="item-price" dir="ltr">{price === null ? "-" : fromMinor(price)} {currency}</em>{!it.available && <span className="menu-badge">{t.hiddenItem}</span>}</span></span>
+            <button type="button" className="menu-btn small" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : k)}>{isOpen ? t.done : t.editItem}</button>
           </div>
           {isOpen && <div className="menu-item">
             <label>{t.itemName}<input required maxLength={120} value={it.name} onChange={(e) => setItem(si, ii, { name: e.target.value })} autoComplete="off" /></label>
