@@ -61,7 +61,7 @@ export default function AdminConsole() {
       setCustomers((current) => [...current, ...(data.customers || [])]);
       setCustomersHasMore(Boolean(data.hasMore));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t(langRef.current, "loadMoreProductsError"));
+      setError(cause instanceof Error ? cause.message : t(langRef.current, "loadMoreCustomersError"));
     } finally {
       setCustomersLoadingMore(false);
     }
