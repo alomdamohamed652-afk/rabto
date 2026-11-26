@@ -12,7 +12,7 @@ Status: draft. No host, domain, mail account, storage account or paid service ha
 ## Mail (provider-agnostic, off by default)
 Password reset and email verification stay "not active" until a transport is configured. A Brevo-shaped HTTPS transport exists in `src/lib/mailer.ts`:
 - RABTO_MAIL_PROVIDER=brevo, RABTO_MAIL_API_KEY, RABTO_MAIL_FROM_EMAIL, optional RABTO_MAIL_FROM_NAME.
-- Tested only against a local mock (`scripts/e2e/mail2.mjs`). It has never contacted a real provider.
+- Tested only against a local mock (`scripts/e2e/mail2.mjs`, dev mode). It has never contacted a real provider with a real key. In production the destination is fixed to Brevo and RABTO_MAIL_API_URL is ignored, so the key cannot be sent elsewhere. A delivery "sent" result means the provider accepted the request, not that it reached an inbox. The transport does not retry.
 - Deliverability with a free Gmail sender address is UNPROVEN for real users (the owner reports it worked in his own test; Brevo recommends an authenticated domain). Test real inbox and spam placement before relying on it.
 - Use a RABTO-owned provider account. Never reuse another project's account or credentials.
 - Provider limits (for example a daily send cap) must be checked against real volume.

@@ -18,15 +18,17 @@ function sinkPath(): string | null {
 /**
  * Optional HTTPS transport (Brevo transactional API shape). Active only when all three variables are set:
  * RABTO_MAIL_API_KEY, RABTO_MAIL_FROM_EMAIL, and RABTO_MAIL_PROVIDER=brevo. RABTO_MAIL_FROM_NAME and
- * RABTO_MAIL_API_URL are optional (the URL override exists for tests). Nothing is configured by default.
+ * RABTO_MAIL_API_URL are optional (the URL override exists for tests and is IGNORED in production). Nothing is configured by default.
  * Deliverability with any particular sender address (for example a free Gmail address) is unproven.
  */
+const BREVO_URL = "https://api.brevo.com/v3/smtp/email";
+/** In production the destination is fixed to Brevo, so a bad override can never receive the API key. */
 function httpConfig() {
   if (process.env.RABTO_MAIL_PROVIDER !== "brevo") return null;
   const key = process.env.RABTO_MAIL_API_KEY;
   const from = process.env.RABTO_MAIL_FROM_EMAIL;
   if (!key || !from) return null;
-  return { key, from, name: process.env.RABTO_MAIL_FROM_NAME || "RABTO", url: process.env.RABTO_MAIL_API_URL || "https://api.brevo.com/v3/smtp/email" };
+  return { key, from, name: process.env.RABTO_MAIL_FROM_NAME || "RABTO", url: process.env.NODE_ENV === "production" ? BREVO_URL : process.env.RABTO_MAIL_API_URL || BREVO_URL };
 }
 
 export function mailTransportAvailable(): boolean {
