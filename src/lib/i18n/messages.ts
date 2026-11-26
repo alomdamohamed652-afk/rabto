@@ -357,6 +357,14 @@ export const messages = {
   }
 } as const;
 
+type SameKeys<Left, Right> = Exclude<keyof Left, keyof Right> extends never
+  ? Exclude<keyof Right, keyof Left> extends never
+    ? true
+    : false
+  : false;
+type Assert<T extends true> = T;
+export type MessageDictionaryKeysAreAligned = Assert<SameKeys<typeof messages.ar, typeof messages.en>>;
+
 export type Language = keyof typeof messages;
 export type MessageKey = keyof typeof messages.ar;
 
