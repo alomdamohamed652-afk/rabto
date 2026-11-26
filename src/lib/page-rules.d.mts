@@ -1,0 +1,13 @@
+export type PageBlock =
+  | { type: "heading"; text: string }
+  | { type: "text"; text: string }
+  | { type: "link"; label: string; url: string }
+  | { type: "image"; url: string; alt: string }
+  | { type: "divider" };
+export type PageContent = { blocks: PageBlock[] };
+export const PAGE_LIMITS: Record<string, number>;
+export const PAGE_CSP: string;
+export function safeUrl(value: unknown, opts?: { imageOnly?: boolean }): string | null;
+export function validateSlug(slug: unknown): boolean;
+export function validatePageContent(content: unknown): { ok: true; value: PageContent } | { ok: false; error: string };
+export function renderPageHtml(input: { title: string; content: PageContent; lang?: "ar" | "en" }): string;
