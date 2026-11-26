@@ -45,7 +45,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
   const router = useRouter();
   const lang = useLanguage();
   const langRef = useRef(lang);
-  langRef.current = lang;
+  useEffect(() => { langRef.current = lang; }, [lang]);
   const [workspaceId, setWorkspaceId] = useState(workspaces[0]?.workspaceId || "");
   const [products, setProducts] = useState<Product[]>([]);
   const [hasMoreProducts, setHasMoreProducts] = useState(false);
