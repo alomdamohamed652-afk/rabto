@@ -10,7 +10,7 @@ type Lang = "ar" | "en";
 const T = {
   ar: {
     kicker: "المنيو", heading: "المنيو والصفحات الرقمية", intro: "عدّل المنيو كمسودة، وبعد ما تراجعه انشره. الزبون يشوف آخر نسخة منشورة فقط.",
-    newMenu: "منيو جديد", title: "اسم الصفحة", slug: "رابط الصفحة (حروف إنجليزية صغيرة وأرقام)", currency: "العملة (3 حروف، مثل EGP)",
+    newMenu: "منيو جديد", editItem: "تعديل الصنف", done: "تم", preview: "معاينة المنيو", hidePreview: "إخفاء المعاينة", hiddenItem: "مخفي عن الزبون", noName: "صنف بدون اسم", previewNote: "هكذا يظهر المنيو للزبون بعد النشر. الأصناف المخفية لا تظهر.", photoPreview: "معاينة الصورة", photoBad: "الرابط لازم يكون https لصورة", title: "اسم الصفحة", slug: "رابط الصفحة (حروف إنجليزية صغيرة وأرقام)", currency: "العملة (3 حروف، مثل EGP)",
     section: "قسم", sectionName: "اسم القسم", addSection: "إضافة قسم", item: "صنف", itemName: "اسم الصنف", desc: "وصف (اختياري)",
     price: "السعر", photo: "رابط صورة https (اختياري)", available: "متاح", remove: "حذف", addItem: "إضافة صنف",
     save: "حفظ المسودة", publish: "نشر", saved: "تم حفظ المسودة.", published: "تم النشر. النسخة", draft: "مسودة", live: "منشور", unpublishedChanges: "فيه تعديلات لم تُنشر",
@@ -19,7 +19,7 @@ const T = {
   },
   en: {
     kicker: "MENUS", heading: "Menus and digital pages", intro: "Edit the menu as a draft, then publish it. Visitors only see the latest published version.",
-    newMenu: "New menu", title: "Page name", slug: "Page link (lowercase letters and numbers)", currency: "Currency (3 letters, e.g. EGP)",
+    newMenu: "New menu", editItem: "Edit item", done: "Done", preview: "Preview menu", hidePreview: "Hide preview", hiddenItem: "Hidden from guests", noName: "Unnamed item", previewNote: "This is how guests see the menu after publishing. Hidden items are not shown.", photoPreview: "Photo preview", photoBad: "Photo link must be an https image URL", title: "Page name", slug: "Page link (lowercase letters and numbers)", currency: "Currency (3 letters, e.g. EGP)",
     section: "Section", sectionName: "Section name", addSection: "Add section", item: "Item", itemName: "Item name", desc: "Description (optional)",
     price: "Price", photo: "Photo link, https (optional)", available: "Available", remove: "Remove", addItem: "Add item",
     save: "Save draft", publish: "Publish", saved: "Draft saved.", published: "Published. Version", draft: "Draft", live: "Published", unpublishedChanges: "Has unpublished changes",
@@ -27,6 +27,18 @@ const T = {
     note: "Photos are https links only for now. No online ordering or payment.",
   },
 } as const;
+
+
+function safePhoto(u: string): string | null {
+  const v = u.trim();
+  if (!v) return null;
+  try { const x = new URL(v); return x.protocol === "https:" && x.hostname ? x.href : null; } catch { return null; }
+}
+function cssUrl(u: string) { return u.replace(/['"()\\<>\s]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")); }
+function Thumb({ url }: { url: string }) {
+  const ok = safePhoto(url);
+  return <span className={"item-thumb" + (ok ? "" : " empty")} aria-hidden="true" style={ok ? { backgroundImage: `url("${cssUrl(ok)}")` } : undefined} />;
+}
 
 const emptyItem = (): Item => ({ name: "", description: "", price: "", available: true, imageUrl: "" });
 
@@ -58,6 +70,8 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const load = useCallback(async () => {
     const r = await fetch("/api/customer/pages?workspaceId=" + encodeURIComponent(workspaceId), { cache: "no-store" });
@@ -69,7 +83,7 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
   // Parent remounts this component per workspace (key), so no state reset is needed here.
   useEffect(() => { Promise.resolve().then(load).catch((e) => setError(e instanceof Error ? e.message : t.err)); }, [load, t.err]);
 
-  function startNew() { setPageId(undefined); setTitle(""); setSlug(""); setCurrency("EGP"); setSections([{ name: "", items: [emptyItem()] }]); setMsg(""); setError(""); setEditing(true); }
+  function startNew() { setPageId(undefined); setTitle(""); setSlug(""); setCurrency("EGP"); setSections([{ name: "", items: [emptyItem()] }]); setOpen("0-0"); setMsg(""); setError(""); setEditing(true); }
   function startEdit(p: PageRow) { const c = fromContent(p.draftContent); setPageId(p.id); setTitle(p.title); setSlug(p.slug); setCurrency(c.currency); setSections(c.sections); setMsg(""); setError(""); setEditing(true); }
 
   function build() {
@@ -133,18 +147,32 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
       {sections.map((s, si) => <fieldset className="menu-section" key={si}>
         <legend>{t.section} {si + 1}</legend>
         <label>{t.sectionName}<input required maxLength={160} value={s.name} onChange={(e) => setSections((c) => c.map((x, a) => a === si ? { ...x, name: e.target.value } : x))} autoComplete="off" /></label>
-        {s.items.map((it, ii) => <div className="menu-item" key={ii}>
-          <label>{t.itemName}<input required maxLength={120} value={it.name} onChange={(e) => setItem(si, ii, { name: e.target.value })} autoComplete="off" /></label>
-          <label>{t.price}<input required inputMode="decimal" dir="ltr" autoComplete="off" placeholder="0.00" value={it.price} onChange={(e) => setItem(si, ii, { price: e.target.value })} /></label>
-          <label className="wide">{t.desc}<input maxLength={400} value={it.description} onChange={(e) => setItem(si, ii, { description: e.target.value })} autoComplete="off" /></label>
-          <label className="wide">{t.photo}<input type="url" inputMode="url" dir="ltr" autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false} value={it.imageUrl} onChange={(e) => setItem(si, ii, { imageUrl: e.target.value })} /></label>
-          <label className="check"><input type="checkbox" checked={it.available} onChange={(e) => setItem(si, ii, { available: e.target.checked })} />{t.available}</label>
-          <button type="button" className="menu-btn" onClick={() => setSections((c) => c.map((x, a) => a === si ? { ...x, items: x.items.filter((_, b) => b !== ii) } : x))}>{t.remove}</button>
-        </div>)}
-        <div className="menu-actions"><button type="button" className="menu-btn" onClick={() => setSections((c) => c.map((x, a) => a === si ? { ...x, items: [...x.items, emptyItem()] } : x))}>{t.addItem}</button>
+        {s.items.map((it, ii) => { const k = si + "-" + ii; const isOpen = open === k; const price = toMinor(it.price); return <div className={"item-block" + (isOpen ? " open" : "")} key={ii}>
+          <div className={"item-card" + (it.available ? "" : " off")}>
+            <Thumb url={it.imageUrl} />
+            <span className="item-text"><b>{it.name || t.noName}</b>{it.description && <small>{it.description}</small>}{!it.available && <span className="menu-badge">{t.hiddenItem}</span>}</span>
+            <em className="item-price" dir="ltr">{price === null ? "-" : fromMinor(price)} {currency}</em>
+            <button type="button" className="menu-btn" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : k)}>{isOpen ? t.done : t.editItem}</button>
+          </div>
+          {isOpen && <div className="menu-item">
+            <label>{t.itemName}<input required maxLength={120} value={it.name} onChange={(e) => setItem(si, ii, { name: e.target.value })} autoComplete="off" /></label>
+            <label>{t.price}<input required inputMode="decimal" dir="ltr" autoComplete="off" placeholder="0.00" value={it.price} onChange={(e) => setItem(si, ii, { price: e.target.value })} /></label>
+            <label className="wide">{t.desc}<textarea rows={2} maxLength={400} value={it.description} onChange={(e) => setItem(si, ii, { description: e.target.value })} autoComplete="off" /></label>
+            <label className="wide">{t.photo}<input type="url" inputMode="url" dir="ltr" autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false} value={it.imageUrl} onChange={(e) => setItem(si, ii, { imageUrl: e.target.value })} /></label>
+            {it.imageUrl.trim() && (safePhoto(it.imageUrl) ? <div className="wide photo-preview"><small>{t.photoPreview}</small><Thumb url={it.imageUrl} /></div> : <p className="wide admin-error" role="alert">{t.photoBad}</p>)}
+            <label className="check"><input type="checkbox" checked={it.available} onChange={(e) => setItem(si, ii, { available: e.target.checked })} />{t.available}</label>
+            <button type="button" className="menu-btn" onClick={() => { setSections((c) => c.map((x, a) => a === si ? { ...x, items: x.items.filter((_, b) => b !== ii) } : x)); setOpen(null); }}>{t.remove}</button>
+          </div>}
+        </div>; })}
+        <div className="menu-actions"><button type="button" className="menu-btn" onClick={() => { setOpen(si + "-" + s.items.length); setSections((c) => c.map((x, a) => a === si ? { ...x, items: [...x.items, emptyItem()] } : x)); }}>{t.addItem}</button>
           <button type="button" className="menu-btn" onClick={() => setSections((c) => c.filter((_, a) => a !== si))}>{t.remove}</button></div>
       </fieldset>)}
-      <button type="button" className="menu-btn" onClick={() => setSections((c) => [...c, { name: "", items: [emptyItem()] }])}>{t.addSection}</button>
+      <div className="menu-actions"><button type="button" className="menu-btn" onClick={() => setSections((c) => [...c, { name: "", items: [emptyItem()] }])}>{t.addSection}</button>
+        <button type="button" className="menu-btn" aria-pressed={showPreview} onClick={() => setShowPreview((v) => !v)}>{showPreview ? t.hidePreview : t.preview}</button></div>
+      {showPreview && <div className="menu-preview" aria-label={t.preview}><small>{t.previewNote}</small>
+        <strong>{title}</strong>
+        {sections.map((sec, si) => { const vis = sec.items.filter((i) => i.available && i.name.trim()); return vis.length ? <div key={si}><h4>{sec.name}</h4>{vis.map((i, ii) => { const m = toMinor(i.price); return <div className="item-card" key={ii}><Thumb url={i.imageUrl} /><span className="item-text"><b>{i.name}</b>{i.description && <small>{i.description}</small>}</span><em className="item-price" dir="ltr">{m === null ? "-" : fromMinor(m)} {currency}</em></div>; })}</div> : null; })}
+      </div>}
       <div className="menu-actions sticky">
         <button type="submit" className="menu-btn" disabled={busy}>{t.save}</button>
         <button type="button" className="menu-btn solid" disabled={busy} onClick={() => void publish()}>{t.publish}</button>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import MenuEditor from "./menu-editor";
-import OrdersPanel from "./orders-panel";
 import InsightsPanel from "./insights-panel";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t, type MessageKey } from "@/lib/i18n/messages";
@@ -104,7 +103,6 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
       <p className="sidebar-label">{t(lang, "workspace")}</p>
       <a className="sidebar-link active" href="#products">{t(lang, "myProducts")}</a>
       <a className="sidebar-link" href="#menus">{lang === "ar" ? "المنيو والصفحات" : "Menus and pages"}</a>
-      <a className="sidebar-link" href="#orders">{lang === "ar" ? "الطلبات" : "Orders"}</a>
       <a className="sidebar-link" href="#insights">{lang === "ar" ? "التحليلات" : "Analytics"}</a>
       <a className="sidebar-link" href="#workspace">{t(lang, "workspaceSection")}</a>
       <div className="sidebar-bottom">{t(lang, "secureWorkspace")}</div>
@@ -117,7 +115,6 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
           <span className="workspace-role">{(() => { const role = workspaces.find((w) => w.workspaceId === workspaceId)?.role; return role ? t(lang, WORKSPACE_ROLE_KEYS[role]) : ""; })()}</span>
         </section>
         <MenuEditor key={workspaceId} workspaceId={workspaceId} workspaceSlug={workspaces.find((w) => w.workspaceId === workspaceId)?.workspaceSlug || ""} lang={lang === "en" ? "en" : "ar"} />
-        <OrdersPanel key={"o-" + workspaceId} workspaceId={workspaceId} lang={lang === "en" ? "en" : "ar"} />
         <InsightsPanel key={"i-" + workspaceId} workspaceId={workspaceId} lang={lang === "en" ? "en" : "ar"} />
         <section className="admin-panel customer-products" id="products">
           <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "yourProducts")}</span><h2>{t(lang, "productsAndCodes")}</h2><p>{t(lang, "productsDescription")}</p></div><strong className="products-count">{products.length}</strong></div>

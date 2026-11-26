@@ -85,30 +85,42 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 function fmtPrice(minor, currency) {
   try { return new Intl.NumberFormat("en", { style: "currency", currency }).format(minor / 100); } catch { return `${(minor / 100).toFixed(2)} ${currency}`; }
 }
-function renderMenu(b) {
-  const secs = b.sections.map((sec) => {
-    const items = sec.items.filter((i) => i.available).map((i) => `<li class="mi">${i.imageUrl ? `<img class="mimg" src="${esc(i.imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ""}<div class="mt"><b>${esc(i.name)}</b>${i.description ? `<span>${esc(i.description)}</span>` : ""}</div><em>${esc(fmtPrice(i.priceMinor, b.currency))}</em></li>`).join("");
-    return items ? `<section class="ms"><h2>${esc(sec.name)}</h2><ul>${items}</ul></section>` : "";
+/** Percent-encode characters that could end a CSS url() string. Input is already a validated https URL. */
+const cssUrl = (u) => String(u).replace(/['"()\\<>\s]/g, (c) => "%" + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0"));
+function renderMenu(b, n = 0) {
+  const live = b.sections.map((sec) => ({ sec, items: sec.items.filter((i) => i.available) })).filter((x) => x.items.length > 0);
+  const nav = live.length > 1 ? `<nav class="mnav" aria-label="${esc(b.title || "menu")}">${live.map((x, k) => `<a href="#m${n}s${k}">${esc(x.sec.name)}</a>`).join("")}</nav>` : "";
+  const secs = live.map((x, k) => {
+    const items = x.items.map((i) => `<li class="mi${i.imageUrl ? " has-img" : ""}">${i.imageUrl ? `<div class="mimg" aria-hidden="true" style="background-image:url(&quot;${esc(cssUrl(i.imageUrl))}&quot;)"></div>` : ""}<div class="mt"><b>${esc(i.name)}</b>${i.description ? `<span>${esc(i.description)}</span>` : ""}</div><em>${esc(fmtPrice(i.priceMinor, b.currency))}</em></li>`).join("");
+    return `<section class="ms" id="m${n}s${k}"><h3>${esc(x.sec.name)}<small>${x.items.length}</small></h3><ul>${items}</ul></section>`;
   }).join("");
-  return `${b.title ? `<h2 class="mh">${esc(b.title)}</h2>` : ""}${secs}`;
+  return `<div class="menu">${b.title ? `<p class="mh">${esc(b.title)}</p>` : ""}${nav}${secs}</div>`;
 }
 
 /** Render a published snapshot to a self-contained, script-free HTML document. */
 export function renderPageHtml({ title, content, lang = "ar" }) {
   const dir = lang === "ar" ? "rtl" : "ltr";
+  let menuN = 0;
   const body = (content.blocks || []).map((b) => {
     if (b.type === "heading") return `<h2>${esc(b.text)}</h2>`;
     if (b.type === "text") return `<p>${esc(b.text)}</p>`;
     if (b.type === "link") return `<a class="btn" href="${esc(b.url)}" rel="noopener noreferrer nofollow" target="_blank">${esc(b.label)}</a>`;
     if (b.type === "image") return `<img src="${esc(b.url)}" alt="${esc(b.alt)}" loading="lazy" referrerpolicy="no-referrer">`;
-    if (b.type === "menu") return renderMenu(b);
+    if (b.type === "menu") return renderMenu(b, menuN++);
     return "<hr>";
   }).join("\n");
   return `<!doctype html><html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(title)}</title><style>
 body{margin:0;background:#f5f4ee;color:#20231f;font:16px/1.8 system-ui,"Segoe UI",Tahoma,sans-serif}main{max-width:560px;margin:0 auto;padding:32px 20px 64px}
 h1{font-size:28px;line-height:1.3;margin:0 0 20px}h2{font-size:20px;margin:28px 0 8px}p{margin:0 0 14px;white-space:pre-wrap}img{display:block;max-width:100%;height:auto;margin:16px 0;border-radius:6px}
 hr{border:0;border-top:1px solid rgba(32,35,31,.14);margin:24px 0}.btn{display:block;margin:12px 0;padding:14px 18px;background:#20231f;color:#fff;text-decoration:none;text-align:center;border-radius:4px}.btn:focus-visible,.btn:hover{background:#91a786;color:#20231f}
-.ms ul{list-style:none;margin:0;padding:0}.mi{display:flex;align-items:center;gap:12px;background:#fbfaf5;border-radius:18px;padding:12px 14px;margin:10px 0;box-shadow:0 8px 22px rgba(32,35,31,.07)}.mimg{width:56px;height:56px;margin:0;border-radius:12px;object-fit:cover}.mt{flex:1;display:flex;flex-direction:column}.mt span{font-size:13px;color:#4d5247;line-height:1.6}.mi em{font-style:normal;font-weight:700;white-space:nowrap}
+.menu{margin-top:8px}.mh{margin:0 0 14px;color:#4d5247;font-size:14px;font-weight:600}html{scroll-behavior:smooth}
+.mnav{position:sticky;top:0;z-index:2;display:flex;gap:8px;overflow-x:auto;margin:0 -20px 8px;padding:10px 20px;background:rgba(245,244,238,.94);backdrop-filter:blur(6px);scrollbar-width:none}.mnav::-webkit-scrollbar{display:none}
+.mnav a{flex:none;padding:9px 16px;border-radius:14px;background:#e9e8df;color:#20231f;text-decoration:none;font-size:14px;font-weight:700;line-height:1.4;box-shadow:0 3px 8px rgba(32,35,31,.08),inset 0 1px 0 rgba(255,255,255,.7)}.mnav a:focus-visible,.mnav a:hover{background:#20231f;color:#f5f4ee}
+.ms{scroll-margin-top:70px}.ms h3{display:flex;align-items:center;gap:10px;margin:26px 0 6px;font-size:20px;line-height:1.4}.ms h3 small{font-size:12px;font-weight:700;padding:2px 10px;border-radius:10px;background:#e7ece1;color:#42533c}
+.ms ul{list-style:none;margin:0;padding:0}.mi{display:flex;align-items:flex-start;gap:14px;background:#fffefa;border-radius:18px;padding:14px 16px;margin:10px 0;box-shadow:0 8px 22px rgba(32,35,31,.07),0 1px 2px rgba(32,35,31,.05)}.mimg{width:76px;height:76px;margin:0;border-radius:14px;flex:none;background:#e7ece1 center/cover no-repeat}
+.mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.mt b{font-size:16px;line-height:1.5;overflow-wrap:anywhere}.mt span{font-size:13px;color:#4d5247;line-height:1.7;overflow-wrap:anywhere}
+.mi em{flex:none;font-style:normal;font-weight:700;font-size:14px;white-space:nowrap;padding:5px 12px;border-radius:12px;background:#e7ece1;color:#20231f;direction:ltr;unicode-bidi:isolate}
+@media(min-width:720px){main{max-width:760px}.ms ul{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mi{margin:0}}
 </style></head><body><main><h1>${esc(title)}</h1>
 ${body}
 </main></body></html>`;

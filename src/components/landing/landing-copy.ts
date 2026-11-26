@@ -72,7 +72,7 @@ export const landingCopy: Record<LandingLang, Copy> = {
         { t: "صفحات رقمية بنسخ منشورة", d: "اكتب مسودة، وانشرها لما تكون جاهزة. كل نشر بيتحفظ كنسخة." },
         { t: "مساحات عمل منفصلة", d: "كل نشاط له منتجاته وفريقه وبياناته." },
         { t: "تحليلات المسح", d: "عدد المسحات يوميًا لكل منتج، بتتحسب في الخلفية." },
-        { t: "إدارة طلبات يدوية", d: "تابع الطلبات والطلبات المسبقة وحالة العربون." },
+        { t: "منيو رقمي للمطاعم", d: "أقسام وأصناف وأسعار وصور، وتعرضه للزبون بنفس الكود. للعرض فقط، من غير طلبات أو دفع." },
         { t: "سجل رصيد قابل للمراجعة", d: "كل حركة مسجلة، ولا يتم تعديل أو حذف السجل." }
       ]
     },
@@ -138,7 +138,7 @@ export const landingCopy: Record<LandingLang, Copy> = {
         { t: "Digital pages with published versions", d: "Write a draft and publish when ready. Every publish is saved as a version." },
         { t: "Separate workspaces", d: "Each business has its own products, team and data." },
         { t: "Scan analytics", d: "Daily scan counts per product, processed in the background." },
-        { t: "Manual order management", d: "Track orders, pre-orders and deposit status." },
+        { t: "Digital menus for restaurants", d: "Sections, items, prices and photos, shown to guests through the same code. Display only, no ordering or payment." },
         { t: "An auditable credit ledger", d: "Every movement is recorded. Entries are never edited or deleted." }
       ]
     },
