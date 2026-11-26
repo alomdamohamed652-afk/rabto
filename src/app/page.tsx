@@ -62,8 +62,8 @@ export default async function HomePage() {
             <div className="product-object"><BrandMark /></div>
             <div className="product-label"><strong>{t(lang, "yourProduct")}</strong><span>{t(lang, "tapOrScan")}</span></div>
           </div>
-          <div className="signal signal-nfc"><span className="signal-icon">⌁</span><strong>NFC</strong><small>Tap</small></div>
-          <div className="signal signal-qr"><span className="qr-pattern" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></span><strong>QR</strong><small>Scan</small></div>
+          <div className="signal signal-nfc"><span className="signal-icon">⌁</span><strong>NFC</strong><small>{t(lang, "tap")}</small></div>
+          <div className="signal signal-qr"><span className="qr-pattern" aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /></span><strong>QR</strong><small>{t(lang, "scan")}</small></div>
           <div className="digital-card">
             <div className="digital-header"><span className="mini-mark">R</span><span>{t(lang, "digitalExperience")}</span><b>↗</b></div>
             <div className="digital-image"><div className="digital-orb" /></div>
