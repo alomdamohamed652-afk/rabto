@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t } from "@/lib/i18n/messages";
+import CodeTools from "./code-tools";
 
 type Customer = {
   userId: string; email: string; createdAt: string;
@@ -199,13 +200,14 @@ export default function AdminConsole() {
             <form className="admin-form" onSubmit={submitBatch}>
               <h3>{t(lang, "createBatch")}</h3>
               <label>{t(lang, "productType")}<select required value={productTypeId} onChange={(e) => setProductTypeId(e.target.value)} disabled={!selectedWorkspace}><option value="">{t(lang, "chooseType")}</option>{types.filter((t) => t.isActive).map((t) => <option key={t.id} value={t.id}>{t.name} ({t.skuPrefix})</option>)}</select></label>
-              <label>{t(lang, "batchCode")}<input required minLength={2} maxLength={64} inputMode="text" autoCapitalize="characters" autoCorrect="off" autoComplete="off" spellCheck={false} pattern="[A-Za-z0-9_-]+" value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="BATCH-001" dir="ltr" /></label>
+              <label>{t(lang, "batchCode")}<input required minLength={2} maxLength={64} inputMode="text" autoCapitalize="characters" autoCorrect="off" autoComplete="off" spellCheck={false} pattern="[A-Za-z0-9_\-]+" value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="BATCH-001" dir="ltr" /></label>
               <label>{t(lang, "quantity")}<input required type="number" inputMode="numeric" autoComplete="off" min={1} max={5000} value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label>
               <label>{t(lang, "initialDestination")}<input required type="url" inputMode="url" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={destination} onChange={(e) => setDestination(e.target.value)} dir="ltr" /></label>
               <button className="admin-primary" disabled={busy || !selectedWorkspace || !productTypeId}>{t(lang, "createBatchCodes")} <span>←</span></button>
             </form>
           </div>
           {issuedCodes.length > 0 && <div className="secret-panel codes-panel"><div><strong>{t(lang, "secretCodes")}</strong><p>{t(lang, "secretCodesDescription")}</p></div><button type="button" onClick={() => copy(["productId,channel,publicCode,activationSecret", ...issuedCodes.map((c) => [c.productId,c.channel,c.publicCode,c.activationSecret].join(","))].join("\n"))}>{t(lang, "copyCsv")}</button><div className="codes-table">{issuedCodes.map((code, index) => <div className="code-row" key={`${code.productId}-${code.channel}`}><span>{index + 1}</span><strong>{code.channel.toUpperCase()}</strong><code>{code.publicCode}</code><code>{code.activationSecret}</code></div>)}</div></div>}
+          <CodeTools codes={issuedCodes} lang={lang === "en" ? "en" : "ar"} />
         </section>
         <footer className="admin-footer">{t(lang, "adminFooter")}</footer>
       </section>
