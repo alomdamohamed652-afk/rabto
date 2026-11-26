@@ -12,6 +12,7 @@ export const workspaceRole = pgEnum("workspace_role", ["owner", "admin", "member
 export const productStatus = pgEnum("product_status", ["draft", "produced", "claimed", "archived"]);
 export const channelType = pgEnum("channel_type", ["nfc", "qr"]);
 export const orderStatus = pgEnum("order_status", ["pending", "confirmed", "cancelled", "fulfilled"]);
+export const ticketStatus = pgEnum("ticket_status", ["open", "pending", "closed"]);
 export const ledgerEntryType = pgEnum("ledger_entry_type", ["credit", "debit", "adjustment", "reset"]);
 
 export const users = pgTable("users", {
@@ -345,3 +346,24 @@ export const passwordResetCodes = pgTable("password_reset_codes", {
   usedAt: timestamp("used_at", { withTimezone: true }),
   createdAt: createdAt()
 }, (t) => [index("password_reset_codes_user_idx").on(t.userId, t.createdAt)]);
+
+/** Support: one thread per ticket, tenant-scoped. Customer message sets open, staff reply sets pending. */
+export const supportTickets = pgTable("support_tickets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+  createdByUserId: uuid("created_by_user_id").notNull().references(() => users.id),
+  subject: varchar("subject", { length: 150 }).notNull(),
+  status: ticketStatus("status").notNull().default("open"),
+  lastMessageAt: timestamp("last_message_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
+}, (t) => [index("support_tickets_workspace_idx").on(t.workspaceId, t.lastMessageAt), index("support_tickets_status_idx").on(t.status, t.lastMessageAt)]);
+
+export const supportMessages = pgTable("support_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ticketId: uuid("ticket_id").notNull().references(() => supportTickets.id, { onDelete: "cascade" }),
+  authorUserId: uuid("author_user_id").notNull().references(() => users.id),
+  fromStaff: boolean("from_staff").notNull().default(false),
+  body: text("body").notNull(),
+  createdAt: createdAt()
+}, (t) => [index("support_messages_ticket_idx").on(t.ticketId, t.createdAt), check("support_messages_body_len", sql`char_length(${t.body}) between 1 and 4000`)]);

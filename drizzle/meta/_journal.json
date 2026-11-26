@@ -64,6 +64,13 @@
       "when": 1796344800000,
       "tag": "0008_session_epoch_and_phone",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1796431200000,
+      "tag": "0009_support_tickets",
+      "breakpoints": true
     }
   ]
 }
