@@ -16,3 +16,6 @@ export function safeUrl(value: unknown, opts?: { imageOnly?: boolean }): string 
 export function validateSlug(slug: unknown): boolean;
 export function validatePageContent(content: unknown): { ok: true; value: PageContent } | { ok: false; error: string };
 export function renderPageHtml(input: { title: string; content: PageContent; lang?: "ar" | "en" }): string;
+
+/** Trusted static SVG path markup per platform key (plus "link"). */
+export const ICON: Record<string, string>;

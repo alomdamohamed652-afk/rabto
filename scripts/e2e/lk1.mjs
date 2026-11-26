@@ -26,12 +26,13 @@ for(const lang of ['en','ar']){
   await pg.select('#links form select',lang);
   await pg.evaluate(()=>{const f=document.querySelector('#links form');const s=f.querySelectorAll('input')[3];s.value='';});
   const slugIn=(await pg.$$('#links form input'))[3];await slugIn.click({clickCount:3});await slugIn.type(slug);
-  chk(lang+' add social',await clickText('#links button',L.as));
+  const chip=async(k)=>{await clickText('#links button',L.as);await pg.waitForSelector('#links .lk-chip');await pg.click(`#links .lk-chip[data-platform="${k}"]`);};
+  await chip('whatsapp');chk(lang+' add social',true);
   await pg.waitForFunction(()=>document.querySelectorAll('#links .item-block').length===1);
-  const val=async(i,t)=>{const els=await pg.$$('#links .item-block');const inp=(await els[i].$$('input'))[0];await inp.click({clickCount:3});await inp.type(t);};
+  const val=async(i,t)=>{const els=await pg.$$('#links .item-block');const inps=await els[i].$$('input');const inp=inps[0];await inp.click({clickCount:3});await inp.type(t);};
   await val(0,'01064589298');
-  chk(lang+' add 2nd',await clickText('#links button',L.as));await pg.waitForFunction(()=>document.querySelectorAll('#links .item-block').length===2);
-  const sel2=(await pg.$$('#links .item-block'))[1];await (await sel2.$('select')).select('instagram');await val(1,'instagram.com/lkdemo');
+  await chip('instagram');chk(lang+' add 2nd',true);await pg.waitForFunction(()=>document.querySelectorAll('#links .item-block').length===2);
+  await val(1,'instagram.com/lkdemo');
   chk(lang+' add link',await clickText('#links button',L.al));await pg.waitForFunction(()=>document.querySelectorAll('#links .item-block').length===3);
   const b3=(await pg.$$('#links .item-block'))[2];const ii=await b3.$$('input');await ii[0].type('My shop');await ii[1].type('https://example.com/shop');
   // reorder: move first (whatsapp) down once -> instagram first
@@ -39,6 +40,7 @@ for(const lang of ['en','ar']){
   chk(lang+' publish',await clickText('#links button',L.pub));
   await pg.waitForFunction(()=>/Published|تم النشر/.test(document.querySelector('#links .menu-msg')?.textContent||''));
   await (await pg.$('#links')).screenshot({path:`/downloads/lk-editor-${lang}-m.png`});
+  await pg.setViewport({width:1280,height:900,deviceScaleFactor:1});await (await pg.$('#links')).screenshot({path:`/downloads/lk-editor-${lang}-d.png`});await pg.setViewport({width:390,height:844,deviceScaleFactor:1.5});
   const html=await (await fetch(B+'/p/lk-cafe/'+slug)).text();
   const i1=html.indexOf('instagram.com/lkdemo'),i2=html.indexOf('wa.me/201064589298'),i3=html.indexOf('example.com/shop');
   chk(lang+' public order instagram,whatsapp,custom',i1>0&&i2>i1&&i3>i2);
