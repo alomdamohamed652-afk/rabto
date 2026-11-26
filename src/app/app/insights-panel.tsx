@@ -15,13 +15,13 @@ const T = {
     kicker: "التحليلات", heading: "التحليلات والرصيد", intro: "عدد مرات فتح الصفحات عبر NFC وQR، وسجل الرصيد. للقراءة فقط.",
     days: "الفترة", d7: "٧ أيام", d30: "٣٠ يومًا", d90: "٩٠ يومًا", total: "إجمالي الفتحات", channels: "حسب القناة", byProduct: "حسب المنتج",
     noScans: "لا توجد فتحات في هذه الفترة.", daily: "آخر الأيام", ledger: "سجل الرصيد", accounts: "حسابات الرصيد", noAccounts: "لا توجد حسابات رصيد بعد.",
-    recent: "آخر الحركات", noEntries: "لا توجد حركات بعد.", balance: "الرصيد", loading: "جارٍ التحميل.", error: "تعذّر التحميل.", nfc: "NFC", qr: "QR", after: "بعد الحركة",
+    recent: "آخر الحركات", noEntries: "لا توجد حركات بعد.", balance: "الرصيد", loading: "جارٍ التحميل.", error: "تعذّر التحميل.", nfc: "NFC", qr: "QR", after: "بعد الحركة", types: { credit: "إضافة رصيد", debit: "خصم", adjustment: "تعديل", reversal: "عكس حركة" } as Record<string, string>,
   },
   en: {
     kicker: "ANALYTICS", heading: "Analytics and balance", intro: "How often pages are opened through NFC and QR, and the balance history. Read only.",
     days: "Period", d7: "7 days", d30: "30 days", d90: "90 days", total: "Total opens", channels: "By channel", byProduct: "By product",
     noScans: "No opens in this period.", daily: "Recent days", ledger: "Balance ledger", accounts: "Balance accounts", noAccounts: "No balance accounts yet.",
-    recent: "Recent entries", noEntries: "No entries yet.", balance: "Balance", loading: "Loading.", error: "Could not load.", nfc: "NFC", qr: "QR", after: "after",
+    recent: "Recent entries", noEntries: "No entries yet.", balance: "Balance", loading: "Loading.", error: "Could not load.", nfc: "NFC", qr: "QR", after: "after", types: { credit: "Credit", debit: "Debit", adjustment: "Adjustment", reversal: "Reversal" } as Record<string, string>,
   },
 } as const;
 
@@ -79,7 +79,7 @@ export default function InsightsPanel({ workspaceId, lang = "ar" }: { workspaceI
       <h4>{t.accounts}</h4>
       {credits.accounts.length === 0 ? <p className="empty-state">{t.noAccounts}</p> : <div className="menu-list">{credits.accounts.map((a) => <div className="menu-row" key={a.accountId}><div><strong dir="ltr">{sku(a.productId)}</strong><small dir="ltr">{a.channel.toUpperCase()}</small></div><span className="menu-badge" dir="ltr">{t.balance} {a.balance}</span></div>)}</div>}
       <h4>{t.recent}</h4>
-      {credits.recent.length === 0 ? <p className="empty-state">{t.noEntries}</p> : <div className="menu-list">{credits.recent.map((e, i) => <div className="menu-row" key={i}><div><strong dir="ltr">{e.amount > 0 ? "+" : ""}{e.amount}</strong><small>{e.entryType}{e.reason ? " · " + e.reason : ""}</small><small dir="ltr">{new Date(e.createdAt).toISOString().slice(0, 16).replace("T", " ")} · {t.after} {e.balanceAfter}</small></div></div>)}</div>}
+      {credits.recent.length === 0 ? <p className="empty-state">{t.noEntries}</p> : <div className="menu-list">{credits.recent.map((e, i) => <div className="menu-row" key={i}><div><strong dir="ltr">{e.amount > 0 ? "+" : ""}{e.amount}</strong><small>{t.types[e.entryType] || e.entryType}{e.reason ? " · " + e.reason : ""}</small><small dir="ltr">{new Date(e.createdAt).toISOString().slice(0, 16).replace("T", " ")} · {t.after} {e.balanceAfter}</small></div></div>)}</div>}
     </>}
   </section>;
 }
