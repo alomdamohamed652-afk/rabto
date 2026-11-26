@@ -8,6 +8,7 @@ import InsightsPanel from "./insights-panel";
 import PlanPanel from "./plan-panel";
 import SupportPanel from "./support-panel";
 import EmailVerifyPanel from "./email-verify-panel";
+import PhonePanel from "./phone-panel";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t, type MessageKey } from "@/lib/i18n/messages";
 
@@ -120,6 +121,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
         <MenuEditor key={workspaceId} workspaceId={workspaceId} workspaceSlug={workspaces.find((w) => w.workspaceId === workspaceId)?.workspaceSlug || ""} lang={lang === "en" ? "en" : "ar"} />
         <PlanPanel key={"p-" + workspaceId} workspaceId={workspaceId} lang={lang === "en" ? "en" : "ar"} />
         <EmailVerifyPanel lang={lang === "en" ? "en" : "ar"} />
+        <PhonePanel lang={lang === "en" ? "en" : "ar"} />
         <SupportPanel key={"s-" + workspaceId} mode="customer" workspaceId={workspaceId} lang={lang === "en" ? "en" : "ar"} />
         <InsightsPanel key={"i-" + workspaceId} workspaceId={workspaceId} lang={lang === "en" ? "en" : "ar"} />
         <section className="admin-panel customer-products" id="products">

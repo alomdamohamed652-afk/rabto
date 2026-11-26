@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const userId = await readSessionCookie(request.headers.get("cookie"));
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const [u] = await getDb().select({ at: users.emailVerifiedAt }).from(users).where(eq(users.id, userId)).limit(1);
-  return NextResponse.json({ verified: Boolean(u?.at), verifiedAt: u?.at ?? null });
+  return NextResponse.json({ verified: Boolean(u?.at), verifiedAt: u?.at ?? null, mailAvailable: mailTransportAvailable() });
 }
 
 /** POST: mail a 6-digit code to the account's own email (never to an address from the request). */

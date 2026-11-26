@@ -12,13 +12,14 @@ const T = {
 export default function EmailVerifyPanel({ lang = "ar" }: { lang?: Lang }) {
   const t = T[lang];
   const [verified, setVerified] = useState<boolean | null>(null);
+  const [mailOk, setMailOk] = useState(true);
   const [sent, setSent] = useState(false);
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const load = useCallback(async () => {
-    try { const r = await fetch("/api/customer/email-verification"); if (r.ok) setVerified(Boolean((await r.json()).verified)); } catch { /* keep unknown */ }
+    try { const r = await fetch("/api/customer/email-verification"); if (r.ok) { const j = await r.json(); setVerified(Boolean(j.verified)); setMailOk(j.mailAvailable !== false); } } catch { /* keep unknown */ }
   }, []);
   useEffect(() => { const id = setTimeout(() => void load(), 0); return () => clearTimeout(id); }, [load]);
   async function send() {
@@ -43,7 +44,7 @@ export default function EmailVerifyPanel({ lang = "ar" }: { lang?: Lang }) {
       {verified ? <p className="admin-notice" role="status">{t.verified}</p> : <div className="admin-form">
         {msg && <p className="admin-notice" role="status">{msg}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
-        {!sent ? <button type="button" className="admin-primary" disabled={busy} onClick={() => void send()}>{t.send} <span>←</span></button> : <form onSubmit={confirm} className="auth-form">
+        {!sent ? (!mailOk ? <p className="admin-notice" role="status">{t.notActive}</p> : <button type="button" className="admin-primary" disabled={busy} onClick={() => void send()}>{t.send} <span>←</span></button>) : <form onSubmit={confirm} className="auth-form">
           <label>{t.code}<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value)} /></label>
           <button className="admin-primary" disabled={busy}>{t.confirm} <span>←</span></button>
         </form>}
