@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 type Item = { name: string; description: string; price: string; available: boolean; imageUrl: string };
 type Section = { name: string; items: Item[] };
-type PageRow = { id: string; slug: string; title: string; draftContent: { blocks?: unknown[] }; publishedAt: string | null; updatedAt: string };
+type PageRow = { id: string; slug: string; title: string; draftContent: { blocks?: unknown[]; lang?: string }; publishedAt: string | null; updatedAt: string };
 type Lang = "ar" | "en";
 
 const T = {
@@ -67,6 +67,7 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
   const [slug, setSlug] = useState("");
   const [currency, setCurrency] = useState("EGP");
   const [sections, setSections] = useState<Section[]>([]);
+  const [base, setBase] = useState<PageRow["draftContent"] | null>(null);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -83,8 +84,8 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
   // Parent remounts this component per workspace (key), so no state reset is needed here.
   useEffect(() => { Promise.resolve().then(load).catch((e) => setError(e instanceof Error ? e.message : t.err)); }, [load, t.err]);
 
-  function startNew() { setPageId(undefined); setTitle(""); setSlug(""); setCurrency("EGP"); setSections([{ name: "", items: [emptyItem()] }]); setOpen("0-0"); setMsg(""); setError(""); setEditing(true); }
-  function startEdit(p: PageRow) { const c = fromContent(p.draftContent); setPageId(p.id); setTitle(p.title); setSlug(p.slug); setCurrency(c.currency); setSections(c.sections); setMsg(""); setError(""); setEditing(true); }
+  function startNew() { setBase(null); setPageId(undefined); setTitle(""); setSlug(""); setCurrency("EGP"); setSections([{ name: "", items: [emptyItem()] }]); setOpen("0-0"); setMsg(""); setError(""); setEditing(true); }
+  function startEdit(p: PageRow) { setBase(p.draftContent); const c = fromContent(p.draftContent); setPageId(p.id); setTitle(p.title); setSlug(p.slug); setCurrency(c.currency); setSections(c.sections); setMsg(""); setError(""); setEditing(true); }
 
   function build() {
     const out = [];
@@ -100,7 +101,12 @@ export default function MenuEditor({ workspaceId, workspaceSlug, lang = "ar" }: 
       }
       out.push({ name: s.name, items });
     }
-    return { blocks: [{ type: "menu", title, currency: currency.toUpperCase(), sections: out }] };
+    const menu = { type: "menu", title, currency: currency.toUpperCase(), sections: out };
+    // Keep every other block (profile, social, links) and the page language; replace only the first menu block.
+    const prev = (base?.blocks || []) as { type?: string }[];
+    const at = prev.findIndex((b) => b.type === "menu");
+    const blocks: unknown[] = at === -1 ? [...prev, menu] : prev.map((b, i) => (i === at ? menu : b));
+    return base?.lang === "ar" || base?.lang === "en" ? { lang: base.lang, blocks } : { blocks };
   }
 
   async function save(): Promise<string | undefined> {

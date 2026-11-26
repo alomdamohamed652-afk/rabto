@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import MenuEditor from "./menu-editor";
+import LinksEditor from "./links-editor";
 import InsightsPanel from "./insights-panel";
 import PlanPanel from "./plan-panel";
 import SupportPanel from "./support-panel";
@@ -107,6 +108,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
       <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
       <p className="sidebar-label">{t(lang, "workspace")}</p>
       <a className="sidebar-link active" href="#products">{t(lang, "myProducts")}</a>
+      <a className="sidebar-link" href="#links">{lang === "ar" ? "صفحة الروابط" : "Links page"}</a>
       <a className="sidebar-link" href="#menus">{lang === "ar" ? "المنيو والصفحات" : "Menus and pages"}</a>
       <a className="sidebar-link" href="#insights">{lang === "ar" ? "التحليلات" : "Analytics"}</a>
       <a className="sidebar-link" href="#workspace">{t(lang, "workspaceSection")}</a>
@@ -120,6 +122,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
           <span className="workspace-role">{(() => { const role = workspaces.find((w) => w.workspaceId === workspaceId)?.role; return role ? t(lang, WORKSPACE_ROLE_KEYS[role]) : ""; })()}</span>
         </section>
         <AssistantPanel lang={lang === "en" ? "en" : "ar"} />
+        <LinksEditor key={"l-" + workspaceId} workspaceId={workspaceId} workspaceSlug={workspaces.find((w) => w.workspaceId === workspaceId)?.workspaceSlug || ""} lang={lang === "en" ? "en" : "ar"} />
         <MenuEditor key={workspaceId} workspaceId={workspaceId} workspaceSlug={workspaces.find((w) => w.workspaceId === workspaceId)?.workspaceSlug || ""} lang={lang === "en" ? "en" : "ar"} />
         <PlanPanel key={"p-" + workspaceId} workspaceId={workspaceId} lang={lang === "en" ? "en" : "ar"} />
         <EmailVerifyPanel lang={lang === "en" ? "en" : "ar"} />
