@@ -97,14 +97,14 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
 
   return <main className="admin-shell customer-shell">
     <aside className="admin-sidebar">
-      <div className="admin-brand-row"><Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link><LanguageSwitcher lang={lang} /></div>
+      <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
       <p className="sidebar-label">{t(lang, "workspace")}</p>
       <a className="sidebar-link active" href="#products">{t(lang, "myProducts")}</a>
       <a className="sidebar-link" href="#workspace">{t(lang, "workspaceSection")}</a>
       <div className="sidebar-bottom">{t(lang, "secureWorkspace")}</div>
     </aside>
     <section className="admin-main">
-      <header className="admin-header"><div><p className="eyebrow">{t(lang, "yourConnectedProducts")}</p><h1>{t(lang, "yourWorkspace")}</h1><p>{email}</p></div><button className="admin-logout" onClick={logout}>{t(lang, "logout")} ↗</button></header>
+      <header className="admin-header"><div><p className="eyebrow">{t(lang, "yourConnectedProducts")}</p><h1>{t(lang, "yourWorkspace")}</h1><p>{email}</p></div><div className="admin-header-actions"><LanguageSwitcher lang={lang} /><button className="admin-logout" onClick={logout}>{t(lang, "logout")} ↗</button></div></header>
       {workspaces.length === 0 ? <section className="admin-panel"><h2>{t(lang, "noWorkspace")}</h2><p className="auth-subtitle">{t(lang, "contactAdmin")}</p></section> : <>
         <section className="admin-panel workspace-panel" id="workspace">
           <label>{t(lang, "workspaceSection")}<select value={workspaceId} onChange={(e) => setWorkspaceId(e.target.value)}>{workspaces.map((workspace) => <option key={workspace.workspaceId} value={workspace.workspaceId}>{workspace.workspaceName}</option>)}</select></label>
