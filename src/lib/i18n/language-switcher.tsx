@@ -1,29 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { getLang, type Language } from "./messages";
+import type { Language } from "./messages";
+
+type LanguageContextValue = {
+  lang: Language;
+  setLang: (language: Language) => void;
+};
+
+const LanguageContext = createContext<LanguageContextValue | null>(null);
+
+export function LanguageProvider({ initialLanguage, children }: { initialLanguage: Language; children: ReactNode }) {
+  const [lang, setLang] = useState<Language>(initialLanguage);
+  return <LanguageContext.Provider value={{ lang, setLang }}>{children}</LanguageContext.Provider>;
+}
 
 export function useLanguage(): Language {
-  const [lang, setLang] = useState<Language>("ar");
-
-  useEffect(() => {
-    const syncLanguage = () => setLang(getLang(document.cookie));
-    syncLanguage();
-    window.addEventListener("rabto-language-change", syncLanguage);
-    return () => window.removeEventListener("rabto-language-change", syncLanguage);
-  }, []);
-
-  return lang;
+  const context = useContext(LanguageContext);
+  if (!context) throw new Error("useLanguage must be used within LanguageProvider");
+  return context.lang;
 }
 
 export default function LanguageSwitcher({ lang }: { lang: Language }) {
   const router = useRouter();
+  const context = useContext(LanguageContext);
 
   function switchLanguage() {
     const nextLanguage: Language = lang === "ar" ? "en" : "ar";
     document.cookie = `rabto_lang=${nextLanguage}; Path=/; Max-Age=31536000; SameSite=Lax`;
-    window.dispatchEvent(new Event("rabto-language-change"));
+    context?.setLang(nextLanguage);
     router.refresh();
   }
 
