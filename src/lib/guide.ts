@@ -73,7 +73,9 @@ export async function saveEntry(a: { actorId: string; id?: string; values: Patch
     }
     const [dupe] = await tx.select({ id: guideEntries.id }).from(guideEntries).where(eq(guideEntries.slug, String(a.values.slug))).limit(1);
     if (dupe) throw new GuideError(409, "That slug is already used.");
-    const [row] = await tx.insert(guideEntries).values(a.values as typeof guideEntries.$inferInsert).returning({ id: guideEntries.id });
+    // Two parallel creates can both pass the check above: let the unique index decide and answer 409, never 500.
+    const [row] = await tx.insert(guideEntries).values(a.values as typeof guideEntries.$inferInsert).onConflictDoNothing({ target: guideEntries.slug }).returning({ id: guideEntries.id });
+    if (!row) throw new GuideError(409, "That slug is already used.");
     await tx.insert(auditLogs).values({ actorUserId: a.actorId, action: "guide.entry_created", entityType: "guide_entry", entityId: row.id, details: { slug: a.values.slug } });
     return row.id;
   });
