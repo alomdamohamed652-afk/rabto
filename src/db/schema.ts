@@ -108,7 +108,7 @@ export const productClaims = pgTable("product_claims", {
   workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id),
   claimedByUserId: uuid("claimed_by_user_id").notNull().references(() => users.id),
   claimedAt: timestamp("claimed_at", { withTimezone: true }).notNull().defaultNow()
-}, (t) => [uniqueIndex("product_claims_product_unique").on(t.productId)]);
+}, (t) => [uniqueIndex("product_claims_product_unique").on(t.productId), index("product_claims_workspace_idx").on(t.workspaceId)]);
 
 export const digitalPages = pgTable("digital_pages", {
   id: uuid("id").defaultRandom().primaryKey(),

@@ -31,8 +31,9 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to provision batch.";
     const status = httpStatusForError(error);
+    if (status >= 500) console.error("RABTO admin route failed", error);
+    const message = status < 500 && error instanceof Error ? error.message : "Unable to provision batch.";
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -54,6 +55,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ batches: rows });
   } catch (error) {
     const status = httpStatusForError(error);
-    return NextResponse.json({ error: status === 500 ? "Unable to load batches." : (error instanceof Error ? error.message : "Error") }, { status });
+    return NextResponse.json({ error: status === 500 ? "Unable to load batches." : (error instanceof Error && status < 500 ? error.message : "Error") }, { status });
   }
 }

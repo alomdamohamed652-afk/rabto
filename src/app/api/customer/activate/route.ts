@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     }
     if (result.kind === "limit") { await clearRateLimitKey(db, key); return NextResponse.json({ error: "Your plan's limit for activated products is reached.", code: "plan_limit" }, { status: 403 }); }
     if (result.kind === "conflict") return NextResponse.json({ error: "Product is already activated." }, { status: 409 });
-    await clearRateLimitKey(db, key);
+    await clearRateLimitKey(db, key).catch((e) => console.error("RABTO rate limit clear failed", e));
     return NextResponse.json({ success: true, productId: result.productId }, { status: 200 });
   } catch (error) {
     console.error("RABTO product activation failed", error);

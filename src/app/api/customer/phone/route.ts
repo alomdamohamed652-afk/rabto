@@ -25,7 +25,7 @@ export async function PUT(request: Request) {
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid request." }, { status: 400 }); }
   const phone = typeof body.phone === "string" ? normalizePhone(body.phone) : null;
   if (!phone) return NextResponse.json({ error: "A valid phone number is required." }, { status: 400 });
-  if (typeof body.password !== "string" || !body.password) return NextResponse.json({ error: "Current password is required." }, { status: 400 });
+  if (typeof body.password !== "string" || !body.password || body.password.length > 1024) return NextResponse.json({ error: "Current password is required." }, { status: 400 });
   try {
     const db = getDb();
     const key: RateLimitKey = { keyType: "phonechange_user", keyHash: rateLimitHash("phonechange-user:" + userId) };
@@ -43,7 +43,7 @@ export async function PUT(request: Request) {
       return "ok" as const;
     });
     if (out === "unavailable") return NextResponse.json({ error: "This number cannot be used." }, { status: 409 });
-    await clearRateLimitKey(db, key);
+    await clearRateLimitKey(db, key).catch((e) => console.error("RABTO rate limit clear failed", e));
     return NextResponse.json({ ok: true, phoneTail: tail(phone) });
   } catch { return NextResponse.json({ error: "Unable to update the phone." }, { status: 500 }); }
 }

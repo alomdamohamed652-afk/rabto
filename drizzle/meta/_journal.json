@@ -106,6 +106,13 @@
       "when": 1796863200000,
       "tag": "0014_guide_links_entry",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1796949600000,
+      "tag": "0015_product_claims_workspace_idx",
+      "breakpoints": true
     }
   ]
 }

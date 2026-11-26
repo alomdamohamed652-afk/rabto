@@ -21,6 +21,7 @@ const t3='restore_check_t3_'+process.pid;let again=false;
 if(q("select count(*) from pg_database where datname='"+t3+"'",'postgres')==='0'){q('create database '+t3,'postgres');try{execFileSync('bash',['../ops/restore-verify.sh',dump,t3],{env,stdio:'pipe'});}catch{again=true;}}
 chk('restore-verify refuses to drop an existing scratch database without the explicit flag',again&&q("select count(*) from pg_database where datname='"+t3+"'",'postgres')==='1');
 q('drop database if exists '+t3,'postgres');
+chk('migration 0015 created the product_claims workspace index',q("select count(*) from pg_indexes where indexname='product_claims_workspace_idx'")==='1');
 const hd=await fetch(B+'/login');
 chk('global headers on app pages (nosniff, referrer, frame, permissions)',hd.headers.get('x-content-type-options')==='nosniff'&&!!hd.headers.get('referrer-policy')&&hd.headers.get('x-frame-options')==='DENY'&&!!hd.headers.get('permissions-policy'));
 const ha=await fetch(B+'/api/health');chk('global headers on api routes',ha.headers.get('x-content-type-options')==='nosniff'&&ha.headers.get('x-frame-options')==='DENY');

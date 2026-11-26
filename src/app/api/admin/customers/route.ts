@@ -79,8 +79,9 @@ export async function POST(request: Request) {
       },
     }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to create customer.";
     const status = httpStatusForError(error);
+    if (status >= 500) console.error("RABTO admin route failed", error);
+    const message = status < 500 && error instanceof Error ? error.message : "Unable to create customer.";
     return NextResponse.json({ error: message }, { status });
   }
 }

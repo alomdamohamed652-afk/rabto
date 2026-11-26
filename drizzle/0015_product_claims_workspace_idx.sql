@@ -1,0 +1,1 @@
+CREATE INDEX "product_claims_workspace_idx" ON "product_claims" USING btree ("workspace_id");
