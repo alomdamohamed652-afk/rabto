@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
+import { t } from "@/lib/i18n/messages";
 
 type Customer = {
   userId: string; email: string; createdAt: string;
@@ -15,6 +17,7 @@ type ProvisionResult = { batchId: string; quantity: number; codes: { productId: 
 
 export default function AdminConsole() {
   const router = useRouter();
+  const lang = useLanguage();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customersHasMore, setCustomersHasMore] = useState(false);
   const [customersLoadingMore, setCustomersLoadingMore] = useState(false);
@@ -40,7 +43,7 @@ export default function AdminConsole() {
   const loadCustomers = useCallback(async () => {
     const response = await fetch("/api/admin/customers?limit=25&offset=0", { cache: "no-store" });
     const data = await response.json() as { customers?: Customer[]; hasMore?: boolean; error?: string };
-    if (!response.ok) throw new Error(data.error || "تعذر تحميل العملاء.");
+    if (!response.ok) throw new Error(data.error || t(lang, "loadProductsError"));
     setCustomers(data.customers || []);
     setCustomersHasMore(Boolean(data.hasMore));
     if (data.customers?.[0]) setSelectedWorkspace((current) => current || data.customers![0].workspaceId);
@@ -52,11 +55,11 @@ export default function AdminConsole() {
     try {
       const response = await fetch(`/api/admin/customers?limit=25&offset=${customers.length}`, { cache: "no-store" });
       const data = await response.json() as { customers?: Customer[]; hasMore?: boolean; error?: string };
-      if (!response.ok) throw new Error(data.error || "تعذر تحميل المزيد من العملاء.");
+      if (!response.ok) throw new Error(data.error || t(lang, "loadMoreProductsError"));
       setCustomers((current) => [...current, ...(data.customers || [])]);
       setCustomersHasMore(Boolean(data.hasMore));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "تعذر تحميل المزيد من العملاء.");
+      setError(cause instanceof Error ? cause.message : t(lang, "loadMoreProductsError"));
     } finally {
       setCustomersLoadingMore(false);
     }
@@ -66,7 +69,7 @@ export default function AdminConsole() {
     if (!selectedWorkspace) { setTypes([]); return; }
     const response = await fetch(`/api/admin/product-types?workspaceId=${encodeURIComponent(selectedWorkspace)}`, { cache: "no-store" });
     const data = await response.json() as { productTypes?: ProductType[]; error?: string };
-    if (!response.ok) throw new Error(data.error || "تعذر تحميل أنواع المنتجات.");
+    if (!response.ok) throw new Error(data.error || t(lang, "createProductTypeError"));
     setTypes(data.productTypes || []);
     setProductTypeId(data.productTypes?.[0]?.id || "");
   }, [selectedWorkspace]);
@@ -78,7 +81,7 @@ export default function AdminConsole() {
       try {
         await loadCustomers();
       } catch (cause) {
-        if (active) setError(cause instanceof Error ? cause.message : "تعذر تحميل البيانات.");
+        if (active) setError(cause instanceof Error ? cause.message : t(lang, "genericError"));
       } finally {
         if (active) setLoading(false);
       }
@@ -94,7 +97,7 @@ export default function AdminConsole() {
       try {
         await loadTypes();
       } catch (cause) {
-        if (active) setError(cause instanceof Error ? cause.message : "تعذر تحميل أنواع المنتجات.");
+        if (active) setError(cause instanceof Error ? cause.message : t(lang, "createProductTypeError"));
       }
     }
     void initializeTypes();
@@ -106,12 +109,12 @@ export default function AdminConsole() {
     try {
       const response = await fetch("/api/admin/customers", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, workspaceName, workspaceSlug }) });
       const data = await response.json() as InvitationResult & { error?: string };
-      if (!response.ok) throw new Error(data.error || "تعذر إنشاء العميل.");
+      if (!response.ok) throw new Error(data.error || t(lang, "createCustomerError"));
       setInviteUrl(data.invitation.url);
-      setNotice("تم إنشاء حساب العميل ومساحة العمل. انسخ رابط الدعوة وشاركه مع العميل؛ الرابط صالح لمدة 24 ساعة ويُستخدم مرة واحدة.");
+      setNotice(t(lang, "invitationCreated"));
       setEmail(""); setWorkspaceName(""); setWorkspaceSlug("");
       await loadCustomers();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "حدث خطأ."); }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : t(lang, "genericError")); }
     finally { setBusy(false); }
   }
 
@@ -120,9 +123,9 @@ export default function AdminConsole() {
     try {
       const response = await fetch("/api/admin/product-types", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workspaceId: selectedWorkspace, name: typeName, skuPrefix }) });
       const data = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(data.error || "تعذر إنشاء نوع المنتج.");
-      setTypeName(""); setSkuPrefix(""); setNotice("تم إنشاء نوع المنتج."); await loadTypes();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "حدث خطأ."); }
+      if (!response.ok) throw new Error(data.error || t(lang, "createProductTypeError"));
+      setTypeName(""); setSkuPrefix(""); setNotice(t(lang, "productTypeCreated")); await loadTypes();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : t(lang, "genericError")); }
     finally { setBusy(false); }
   }
 
@@ -131,10 +134,10 @@ export default function AdminConsole() {
     try {
       const response = await fetch("/api/admin/batches", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workspaceId: selectedWorkspace, productTypeId, batchCode, quantity: Number(quantity), initialDestinationUrl: destination }) });
       const data = await response.json() as ProvisionResult & { error?: string };
-      if (!response.ok) throw new Error(data.error || "تعذر تجهيز الدفعة.");
-      setIssuedCodes(data.codes); setNotice(`تم تجهيز دفعة ${data.quantity} منتج بنجاح. بيانات التفعيل تظهر هنا مرة واحدة؛ احفظها في مكان آمن.`);
+      if (!response.ok) throw new Error(data.error || t(lang, "batchError"));
+      setIssuedCodes(data.codes); setNotice(t(lang, "batchCreated", { quantity: data.quantity }));
       setBatchCode("");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "حدث خطأ."); }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : t(lang, "genericError")); }
     finally { setBusy(false); }
   }
 
@@ -144,13 +147,13 @@ export default function AdminConsole() {
   }
 
   function copy(value: string) {
-    void navigator.clipboard.writeText(value).then(() => setNotice("تم النسخ."));
+    void navigator.clipboard.writeText(value).then(() => setNotice(t(lang, "copySuccess")));
   }
 
   return (
-    <main className="admin-shell" dir="rtl">
+    <main className="admin-shell">
       <aside className="admin-sidebar">
-        <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
+        <div className="admin-brand-row"><Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link><LanguageSwitcher lang={lang} /></div>
         <p className="sidebar-label">إدارة المنصة</p>
         <a className="sidebar-link active" href="#overview">نظرة عامة</a>
         <a className="sidebar-link" href="#customers">العملاء ومساحات العمل</a>
@@ -158,7 +161,7 @@ export default function AdminConsole() {
         <div className="sidebar-bottom"><span className="status-dot" /> المنصة جاهزة للإدارة</div>
       </aside>
       <section className="admin-main">
-        <header className="admin-header"><div><p className="eyebrow">RABTO / CONTROL CENTER</p><h1>إدارة المنصة</h1><p>إدارة العملاء وتجهيز المنتجات والأكواد من مكان واحد.</p></div><button className="admin-logout" type="button" onClick={logout}>تسجيل الخروج ↗</button></header>
+        <header className="admin-header"><div><p className="eyebrow">{t(lang, "controlCenter")}</p><h1>إدارة المنصة</h1><p>إدارة العملاء وتجهيز المنتجات والأكواد من مكان واحد.</p></div><button className="admin-logout" type="button" onClick={logout}>تسجيل الخروج ↗</button></header>
         <section className="admin-stats" id="overview">
           <article><span>مساحات العمل</span><strong>{customers.length}</strong><small>مساحات العملاء المسجلة</small></article>
           <article><span>أنواع المنتجات</span><strong>{types.length}</strong><small>للعميل المحدد</small></article>
@@ -169,7 +172,7 @@ export default function AdminConsole() {
         {inviteUrl && <div className="secret-panel"><div><strong>رابط دعوة العميل</strong><p>انسخه وشاركه يدويًا. لن نعرضه مرة أخرى بعد مغادرة هذه الشاشة.</p></div><button type="button" onClick={() => copy(inviteUrl)}>نسخ رابط الدعوة</button><code>{inviteUrl}</code></div>}
         <div className="admin-grid" id="customers">
           <section className="admin-panel">
-            <div className="panel-heading"><div><span className="panel-kicker">CUSTOMER ONBOARDING</span><h2>إضافة عميل جديد</h2></div><span className="panel-index">01</span></div>
+            <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerOnboardingLabel")}</span><h2>إضافة عميل جديد</h2></div><span className="panel-index">01</span></div>
             <form className="admin-form" onSubmit={submitCustomer}>
               <label>البريد الإلكتروني<input type="email" required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com" /></label>
               <label>اسم مساحة العمل<input required minLength={2} maxLength={120} value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} placeholder="اسم النشاط التجاري" /></label>
@@ -178,19 +181,19 @@ export default function AdminConsole() {
             </form>
           </section>
           <section className="admin-panel">
-            <div className="panel-heading"><div><span className="panel-kicker">CUSTOMER DIRECTORY</span><h2>العملاء الحاليون</h2></div><span className="panel-index">02</span></div>
+            <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerDirectory")}</span><h2>العملاء الحاليون</h2></div><span className="panel-index">02</span></div>
             {loading ? <p className="empty-state">جارٍ تحميل العملاء...</p> : customers.length === 0 ? <p className="empty-state">لسه مفيش عملاء. أضف أول عميل للبدء.</p> : <div className="customer-list">{customers.map((customer) => <button type="button" className={selectedWorkspace === customer.workspaceId ? "customer-row selected" : "customer-row"} key={customer.workspaceId} onClick={() => setSelectedWorkspace(customer.workspaceId)}><span className="customer-avatar">{customer.workspaceName.slice(0,1)}</span><span className="customer-details"><strong>{customer.workspaceName}</strong><small>{customer.email} · {customer.workspaceSlug}</small></span><span className="row-arrow">←</span></button>)}</div>}
-            {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? "جارٍ التحميل..." : "عرض المزيد من العملاء"}</button>}
+            {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? t(lang, "loadingMore") : t(lang, "showMoreCustomers")}</button>}
           </section>
         </div>
         <section className="admin-panel provisioning-panel" id="provisioning">
-          <div className="panel-heading"><div><span className="panel-kicker">PRODUCT OPERATIONS</span><h2>تجهيز المنتجات والأكواد</h2><p>اختار مساحة عمل، عرّف نوع المنتج، وبعدها جهّز دفعة بأكواد QR وNFC مستقلة.</p></div><span className="panel-index">03</span></div>
-          <div className="selected-customer"><label>مساحة العمل<select value={selectedWorkspace} onChange={(e) => setSelectedWorkspace(e.target.value)}><option value="">اختار عميل</option>{customers.map((c) => <option key={c.workspaceId} value={c.workspaceId}>{c.workspaceName}</option>)}</select></label><span>{customers.find((c) => c.workspaceId === selectedWorkspace)?.email || "لم يتم اختيار عميل"}</span></div>
+          <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "productOperations")}</span><h2>تجهيز المنتجات والأكواد</h2><p>اختار مساحة عمل، عرّف نوع المنتج، وبعدها جهّز دفعة بأكواد QR وNFC مستقلة.</p></div><span className="panel-index">03</span></div>
+          <div className="selected-customer"><label>مساحة العمل<select value={selectedWorkspace} onChange={(e) => setSelectedWorkspace(e.target.value)}><option value="">اختار عميل</option>{customers.map((c) => <option key={c.workspaceId} value={c.workspaceId}>{c.workspaceName}</option>)}</select></label><span>{customers.find((c) => c.workspaceId === selectedWorkspace)?.email || t(lang, "noCustomerSelected")}</span></div>
           <div className="admin-grid nested-grid">
             <form className="admin-form" onSubmit={submitType}>
               <h3>نوع منتج جديد</h3>
-              <label>اسم النوع<input required minLength={2} maxLength={120} value={typeName} onChange={(e) => setTypeName(e.target.value)} placeholder="مثال: ميدالية NFC" /></label>
-              <label>بادئة SKU<input required minLength={2} maxLength={24} value={skuPrefix} onChange={(e) => setSkuPrefix(e.target.value.toUpperCase())} placeholder="TAG" dir="ltr" /></label>
+              <label>اسم النوع<input required minLength={2} maxLength={120} value={typeName} onChange={(e) => setTypeName(e.target.value)} placeholder=t(lang, "skuExample") /></label>
+              <label>بادئة SKU<input required minLength={2} maxLength={24} value={skuPrefix} onChange={(e) => setSkuPrefix(e.target.value.toUpperCase())} placeholder=t(lang, "tagExample") dir="ltr" /></label>
               <button className="admin-secondary" disabled={busy || !selectedWorkspace}>إضافة نوع المنتج</button>
             </form>
             <form className="admin-form" onSubmit={submitBatch}>
@@ -204,7 +207,7 @@ export default function AdminConsole() {
           </div>
           {issuedCodes.length > 0 && <div className="secret-panel codes-panel"><div><strong>بيانات الأكواد السرية — تُعرض مرة واحدة</strong><p>كل منتج له كود QR وكود NFC، مع سر تفعيل مستقل لكل قناة. لا تشارك أسرار التفعيل علنًا.</p></div><button type="button" onClick={() => copy(["productId,channel,publicCode,activationSecret", ...issuedCodes.map((c) => [c.productId,c.channel,c.publicCode,c.activationSecret].join(","))].join("\n"))}>نسخ CSV</button><div className="codes-table">{issuedCodes.map((code, index) => <div className="code-row" key={`${code.productId}-${code.channel}`}><span>{index + 1}</span><strong>{code.channel.toUpperCase()}</strong><code>{code.publicCode}</code><code>{code.activationSecret}</code></div>)}</div></div>}
         </section>
-        <footer className="admin-footer">RABTO · Physical to Digital · لوحة الإدارة الداخلية</footer>
+        <footer className="admin-footer">{t(lang, "adminFooter")}</footer>
       </section>
     </main>
   );
