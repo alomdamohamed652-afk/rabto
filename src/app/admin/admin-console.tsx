@@ -17,7 +17,9 @@ type ProvisionResult = { batchId: string; quantity: number; codes: { productId: 
 
 export default function AdminConsole() {
   const router = useRouter();
-  const lang = useLanguage();\n  const langRef = useRef(lang);\n  langRef.current = lang;
+  const lang = useLanguage();
+  const langRef = useRef(lang);
+  langRef.current = lang;
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customersHasMore, setCustomersHasMore] = useState(false);
   const [customersLoadingMore, setCustomersLoadingMore] = useState(false);
@@ -158,7 +160,7 @@ export default function AdminConsole() {
         <a className="sidebar-link active" href="#overview">{t(langRef.current, "overview")}</a>
         <a className="sidebar-link" href="#customers">{t(langRef.current, "customersWorkspaces")}</a>
         <a className="sidebar-link" href="#provisioning">{t(langRef.current, "productSetup")}</a>
-        <div className="sidebar-bottom"><span className="status-dot" /> المنصة جاهزة للإدارة</div>
+        <div className="sidebar-bottom"><span className="status-dot" /> {t(langRef.current, "platformReady")}</div>
       </aside>
       <section className="admin-main">
         <header className="admin-header"><div><p className="eyebrow">{t(langRef.current, "controlCenter")}</p><h1>{t(langRef.current, "adminTitle")}</h1><p>{t(langRef.current, "adminDescription")}</p></div><button className="admin-logout" type="button" onClick={logout}>{t(langRef.current, "logout")} ↗</button></header>
