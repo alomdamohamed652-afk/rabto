@@ -358,6 +358,19 @@ export const emailVerificationCodes = pgTable("email_verification_codes", {
   createdAt: createdAt()
 }, (t) => [index("email_verification_codes_user_idx").on(t.userId, t.createdAt)]);
 
+/** Admin-assisted account recovery queue. A request never changes a password; an admin reviews it and contacts the customer. */
+export const recoveryRequests = pgTable("recovery_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  note: text("note"),
+  status: varchar("status", { length: 20 }).notNull().default("open"),
+  decisionNote: text("decision_note"),
+  decidedBy: uuid("decided_by").references(() => users.id, { onDelete: "set null" }),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  createdAt: createdAt()
+}, (t) => [index("recovery_requests_status_idx").on(t.status, t.createdAt), index("recovery_requests_user_idx").on(t.userId)]);
+
 /** Support: one thread per ticket, tenant-scoped. Customer message sets open, staff reply sets pending. */
 export const supportTickets = pgTable("support_tickets", {
   id: uuid("id").defaultRandom().primaryKey(),

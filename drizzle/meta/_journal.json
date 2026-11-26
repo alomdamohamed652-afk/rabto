@@ -78,6 +78,13 @@
       "when": 1796517600000,
       "tag": "0010_email_verification_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1796604000000,
+      "tag": "0011_recovery_requests",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import { t } from "@/lib/i18n/messages";
 import CodeTools from "./code-tools";
 import PlansPanel from "./plans-panel";
 import SupportPanel from "../app/support-panel";
+import RecoveryPanel from "./recovery-panel";
 import type { PlanRow } from "./plans-panel";
 
 type Customer = {
@@ -197,6 +198,7 @@ export default function AdminConsole() {
             {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? t(lang, "loadingMore") : t(lang, "showMoreCustomers")}</button>}
           </section>
         </div>
+        <RecoveryPanel lang={lang === "en" ? "en" : "ar"} />
         <SupportPanel mode="admin" lang={lang === "en" ? "en" : "ar"} />
         <PlansPanel plans={plansList} customers={customers} lang={lang === "en" ? "en" : "ar"} onChanged={() => void loadPlans()} />
         <section className="admin-panel provisioning-panel" id="provisioning">
