@@ -4,9 +4,12 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
+import { t } from "@/lib/i18n/messages";
 
 export default function LoginPage() {
   const router = useRouter();
+  const lang = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,30 +26,30 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json() as { error?: string; role?: string };
-      if (!response.ok) throw new Error(data.error || "تعذر تسجيل الدخول.");
+      if (!response.ok) throw new Error(data.error || t(lang, "loginError"));
       router.replace(data.role === "admin" ? "/admin" : "/app");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "حدث خطأ غير متوقع.");
+      setError(cause instanceof Error ? cause.message : t(lang, "unexpectedError"));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <main className="auth-shell" dir="rtl">
+    <main className="auth-shell">
       <section className="auth-card">
-        <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
-        <p className="eyebrow">مساحة RABTO</p>
-        <h1>أهلاً بعودتك.</h1>
-        <p className="auth-subtitle">سجّل الدخول لمتابعة المنتجات والأكواد ومساحات العمل.</p>
+        <div className="auth-topline"><Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link><LanguageSwitcher lang={lang} /></div>
+        <p className="eyebrow">{t(lang, "loginSpace")}</p>
+        <h1>{t(lang, "welcomeBack")}</h1>
+        <p className="auth-subtitle">{t(lang, "loginDescription")}</p>
         <form onSubmit={submit} className="auth-form">
-          <label>البريد الإلكتروني<input type="email" autoComplete="username" required maxLength={320} value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-          <label>كلمة المرور<input type="password" autoComplete="current-password" required maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+          <label>{t(lang, "email")}<input type="email" autoComplete="username" required maxLength={320} value={email} onChange={(event) => setEmail(event.target.value)} /></label>
+          <label>{t(lang, "password")}<input type="password" autoComplete="current-password" required maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} /></label>
           {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="admin-primary" type="submit" disabled={busy}>{busy ? "جارٍ تسجيل الدخول..." : "تسجيل الدخول"} <span>←</span></button>
+          <button className="admin-primary" type="submit" disabled={busy}>{busy ? t(lang, "loggingIn") : t(lang, "login")} <span>←</span></button>
         </form>
-        <p className="auth-footnote">لو دي أول مرة، افتح رابط الدعوة اللي وصلك من إدارة RABTO.</p>
+        <p className="auth-footnote">{t(lang, "firstTime")}</p>
       </section>
     </main>
   );
