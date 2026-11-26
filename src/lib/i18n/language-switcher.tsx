@@ -6,9 +6,14 @@ import { getLang, type Language } from "./messages";
 
 export function useLanguage(): Language {
   const [lang, setLang] = useState<Language>("ar");
+
   useEffect(() => {
-    setLang(getLang(document.cookie));
+    const syncLanguage = () => setLang(getLang(document.cookie));
+    syncLanguage();
+    window.addEventListener("rabto-language-change", syncLanguage);
+    return () => window.removeEventListener("rabto-language-change", syncLanguage);
   }, []);
+
   return lang;
 }
 
@@ -18,6 +23,7 @@ export default function LanguageSwitcher({ lang }: { lang: Language }) {
   function switchLanguage() {
     const nextLanguage: Language = lang === "ar" ? "en" : "ar";
     document.cookie = `rabto_lang=${nextLanguage}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    window.dispatchEvent(new Event("rabto-language-change"));
     router.refresh();
   }
 
