@@ -7,6 +7,7 @@ import type { FormEvent } from "react";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t } from "@/lib/i18n/messages";
 import CodeTools from "./code-tools";
+import BatchHistory from "./batch-history";
 import PlansPanel from "./plans-panel";
 import SupportPanel from "../app/support-panel";
 import RecoveryPanel from "./recovery-panel";
@@ -198,6 +199,7 @@ export default function AdminConsole() {
             {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? t(lang, "loadingMore") : t(lang, "showMoreCustomers")}</button>}
           </section>
         </div>
+        <BatchHistory lang={lang === "en" ? "en" : "ar"} refreshKey={issuedCodes.length} />
         <RecoveryPanel lang={lang === "en" ? "en" : "ar"} />
         <SupportPanel mode="admin" lang={lang === "en" ? "en" : "ar"} />
         <PlansPanel plans={plansList} customers={customers} lang={lang === "en" ? "en" : "ar"} onChanged={() => void loadPlans()} />

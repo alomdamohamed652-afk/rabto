@@ -22,5 +22,5 @@ const cp=await br.newPage();await cp.setViewport({width:390,height:900,deviceSca
 const C=acc.cookie;await cp.setCookie({name:C.split('=')[0],value:C.split('=').slice(1).join('='),url:B});
 await cp.goto(B+'/app',{waitUntil:'networkidle0'});await new Promise(r=>setTimeout(r,800));
 const ev=await cp.$('#email-verify');console.log('verify panel present',!!ev);
-if(ev){await (await ev.$('button.admin-primary')).click();await new Promise(r=>setTimeout(r,1200));console.log('inactive-mail message shown',(await ev.evaluate(e=>e.innerText)).includes('مش مفعّل'));await ev.screenshot({path:'/downloads/email-verify-panel.png'});}
+if(ev){const b=await ev.$('button.admin-primary');console.log('send button present (must be false with no transport)',!!b);console.log('unavailable notice shown',(await ev.evaluate(e=>e.innerText)).includes('مش مفعّل'));await ev.screenshot({path:'/downloads/email-verify-panel-unavailable.png'});}
 await br.close();
