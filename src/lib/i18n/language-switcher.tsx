@@ -30,6 +30,8 @@ export default function LanguageSwitcher({ lang }: { lang: Language }) {
   function switchLanguage() {
     const nextLanguage: Language = lang === "ar" ? "en" : "ar";
     document.cookie = `rabto_lang=${nextLanguage}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    document.documentElement.lang = nextLanguage;
+    document.documentElement.dir = nextLanguage === "ar" ? "rtl" : "ltr";
     context?.setLang(nextLanguage);
     router.refresh();
   }
