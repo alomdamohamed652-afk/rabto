@@ -44,7 +44,7 @@ export default function LoginPage() {
         <h1>{t(lang, "welcomeBack")}</h1>
         <p className="auth-subtitle">{t(lang, "loginDescription")}</p>
         <form onSubmit={submit} className="auth-form">
-          <label>{t(lang, "email")}<input type="email" autoComplete="username" required maxLength={320} value={email} onChange={(event) => setEmail(event.target.value)} /></label>
+          <label>{t(lang, "email")}<input type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="username" required maxLength={320} value={email} onChange={(event) => setEmail(event.target.value)} /></label>
           <label>{t(lang, "password")}<input type="password" autoComplete="current-password" required maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} /></label>
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="admin-primary" type="submit" disabled={busy}>{busy ? t(lang, "loggingIn") : t(lang, "login")} <span>←</span></button>

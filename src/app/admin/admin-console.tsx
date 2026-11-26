@@ -174,9 +174,9 @@ export default function AdminConsole() {
           <section className="admin-panel">
             <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "customerOnboardingLabel")}</span><h2>{t(lang, "addCustomer")}</h2></div><span className="panel-index">01</span></div>
             <form className="admin-form" onSubmit={submitCustomer}>
-              <label>{t(lang, "email")}<input type="email" required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com" /></label>
+              <label>{t(lang, "email")}<input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} required maxLength={320} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="customer@example.com" /></label>
               <label>{t(lang, "workspaceName")}<input required minLength={2} maxLength={120} value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} placeholder={t(lang, "customerNamePlaceholder")} /></label>
-              <label>{t(lang, "workspaceSlug")}<input required minLength={3} maxLength={80} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={workspaceSlug} onChange={(e) => setWorkspaceSlug(e.target.value)} placeholder="business-name" dir="ltr" /></label>
+              <label>{t(lang, "workspaceSlug")}<input required minLength={3} maxLength={80} inputMode="text" autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={workspaceSlug} onChange={(e) => setWorkspaceSlug(e.target.value)} placeholder="business-name" dir="ltr" /></label>
               <button className="admin-primary" disabled={busy}>{t(lang, "createAccountInvite")} <span>←</span></button>
             </form>
           </section>
@@ -193,15 +193,15 @@ export default function AdminConsole() {
             <form className="admin-form" onSubmit={submitType}>
               <h3>{t(lang, "newProductType")}</h3>
               <label>{t(lang, "typeName")}<input required minLength={2} maxLength={120} value={typeName} onChange={(e) => setTypeName(e.target.value)} placeholder={t(lang, "skuExample")} /></label>
-              <label>{t(lang, "skuPrefix")}<input required minLength={2} maxLength={24} value={skuPrefix} onChange={(e) => setSkuPrefix(e.target.value.toUpperCase())} placeholder={t(lang, "tagExample")} dir="ltr" /></label>
+              <label>{t(lang, "skuPrefix")}<input required minLength={2} maxLength={24} inputMode="text" autoCapitalize="characters" autoCorrect="off" autoComplete="off" spellCheck={false} value={skuPrefix} onChange={(e) => setSkuPrefix(e.target.value.toUpperCase())} placeholder={t(lang, "tagExample")} dir="ltr" /></label>
               <button className="admin-secondary" disabled={busy || !selectedWorkspace}>{t(lang, "addProductType")}</button>
             </form>
             <form className="admin-form" onSubmit={submitBatch}>
               <h3>{t(lang, "createBatch")}</h3>
               <label>{t(lang, "productType")}<select required value={productTypeId} onChange={(e) => setProductTypeId(e.target.value)} disabled={!selectedWorkspace}><option value="">{t(lang, "chooseType")}</option>{types.filter((t) => t.isActive).map((t) => <option key={t.id} value={t.id}>{t.name} ({t.skuPrefix})</option>)}</select></label>
-              <label>{t(lang, "batchCode")}<input required minLength={2} maxLength={64} pattern="[A-Za-z0-9_-]+" value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="BATCH-001" dir="ltr" /></label>
-              <label>{t(lang, "quantity")}<input required type="number" min={1} max={5000} value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label>
-              <label>{t(lang, "initialDestination")}<input required type="url" value={destination} onChange={(e) => setDestination(e.target.value)} dir="ltr" /></label>
+              <label>{t(lang, "batchCode")}<input required minLength={2} maxLength={64} inputMode="text" autoCapitalize="characters" autoCorrect="off" autoComplete="off" spellCheck={false} pattern="[A-Za-z0-9_-]+" value={batchCode} onChange={(e) => setBatchCode(e.target.value)} placeholder="BATCH-001" dir="ltr" /></label>
+              <label>{t(lang, "quantity")}<input required type="number" inputMode="numeric" autoComplete="off" min={1} max={5000} value={quantity} onChange={(e) => setQuantity(e.target.value)} /></label>
+              <label>{t(lang, "initialDestination")}<input required type="url" inputMode="url" autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={destination} onChange={(e) => setDestination(e.target.value)} dir="ltr" /></label>
               <button className="admin-primary" disabled={busy || !selectedWorkspace || !productTypeId}>{t(lang, "createBatchCodes")} <span>←</span></button>
             </form>
           </div>
