@@ -1,6 +1,6 @@
 import {
   pgTable, pgEnum, uuid, varchar, text, boolean, integer, bigint, jsonb,
-  timestamp, uniqueIndex, index, check
+  timestamp, uniqueIndex, index, check, date, primaryKey
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -196,13 +196,23 @@ export const orders = pgTable("orders", {
   currency: varchar("currency", { length: 3 }).notNull().default("EGP"),
   subtotalMinor: bigint("subtotal_minor", { mode: "number" }).notNull().default(0),
   depositMinor: bigint("deposit_minor", { mode: "number" }),
+  fulfillmentType: varchar("fulfillment_type", { length: 20 }).notNull().default("in_stock"),
+  depositStatus: varchar("deposit_status", { length: 20 }).notNull().default("none"),
   notes: text("notes"),
   createdAt: createdAt(),
   updatedAt: updatedAt()
 }, (t) => [
   uniqueIndex("orders_workspace_number_unique").on(t.workspaceId, t.orderNumber),
-  index("orders_workspace_status_created_idx").on(t.workspaceId, t.status, t.createdAt)
+  index("orders_workspace_status_created_idx").on(t.workspaceId, t.status, t.createdAt),
+  check("orders_fulfillment_type_valid", sql`${t.fulfillmentType} IN ('in_stock','pre_order','backorder')`),
+  check("orders_deposit_status_valid", sql`${t.depositStatus} IN ('none','requested','received')`),
+  check("orders_amounts_valid", sql`${t.subtotalMinor} >= 0 AND (${t.depositMinor} IS NULL OR (${t.depositMinor} >= 0 AND ${t.depositMinor} <= ${t.subtotalMinor}))`)
 ]);
+
+export const orderCounters = pgTable("order_counters", {
+  workspaceId: uuid("workspace_id").primaryKey().references(() => workspaces.id, { onDelete: "cascade" }),
+  lastNumber: integer("last_number").notNull().default(0)
+});
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -263,4 +273,29 @@ export const trustedLoginIps = pgTable("trusted_login_ips", {
   uniqueIndex("trusted_login_ips_account_ip_unique").on(t.accountHash, t.ipHash),
   index("trusted_login_ips_last_success_idx").on(t.lastSuccessAt),
   check("trusted_login_ips_hash_length", sql`length(${t.accountHash}) = 64 AND length(${t.ipHash}) = 64`),
+]);
+
+export const scanEvents = pgTable("scan_events", {
+  id: uuid("id").primaryKey(),
+  seq: bigint("seq", { mode: "number" }).generatedAlwaysAsIdentity().notNull(),
+  workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  channel: channelType("channel").notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  processedAt: timestamp("processed_at", { withTimezone: true })
+}, (t) => [
+  index("scan_events_unprocessed_idx").on(t.seq).where(sql`${t.processedAt} IS NULL`),
+  index("scan_events_processed_idx").on(t.processedAt).where(sql`${t.processedAt} IS NOT NULL`)
+]);
+
+export const dailyScanStats = pgTable("daily_scan_stats", {
+  workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+  productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  channel: channelType("channel").notNull(),
+  day: date("day").notNull(),
+  scans: integer("scans").notNull().default(0),
+  updatedAt: updatedAt()
+}, (t) => [
+  primaryKey({ name: "daily_scan_stats_pk", columns: [t.workspaceId, t.productId, t.channel, t.day] }),
+  index("daily_scan_stats_workspace_day_idx").on(t.workspaceId, t.day)
 ]);

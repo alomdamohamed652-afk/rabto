@@ -29,6 +29,7 @@ done
 HASH="$(cd "$HERE" && node -e "import('./seed.mjs').then(m=>console.log(m.hash('Admin-Test-Pass-123')))")"
 psql -q rabto_e2e -c "insert into users (email,password_hash,platform_role) values ('admin@test.local','$HASH','admin')"
 export SESSION_SECRET="test-only-secret-test-only-secret-123"
+export ANALYTICS_CONSUMER_SECRET="e2e-analytics-secret-0123456789abcdef"
 export DATABASE_URL="postgres://postgres@127.0.0.1:$PORT_DB/rabto_e2e"
 export E2E_BASE_URL="http://127.0.0.1:$PORT_APP"
 (cd "$RABTO_DIR" && exec node node_modules/next/dist/bin/next start -p "$PORT_APP" >"$TMP/next.log" 2>&1) &

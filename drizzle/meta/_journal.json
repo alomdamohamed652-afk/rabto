@@ -29,6 +29,20 @@
       "when": 1795912800000,
       "tag": "0003_digital_page_versions",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795999200000,
+      "tag": "0004_scan_analytics",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1796085600000,
+      "tag": "0005_order_workflow",
+      "breakpoints": true
     }
   ]
 }

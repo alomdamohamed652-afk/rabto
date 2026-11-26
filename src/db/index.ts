@@ -15,13 +15,15 @@ export function getDb(): Database {
     throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and configure PostgreSQL.");
   }
 
+  // One pool per server process in every environment. (Previously production built a new pool on every call,
+  // which exhausted Postgres connections under concurrent requests.)
   const client = globalForDb.postgresClient ?? postgres(connectionString, {
     max: process.env.NODE_ENV === "production" ? 10 : 1,
+    idle_timeout: 20,
     prepare: false
   });
 
-  if (process.env.NODE_ENV !== "production") globalForDb.postgresClient = client;
-  const database = drizzle(client);
-  if (process.env.NODE_ENV !== "production") globalForDb.drizzleDb = database;
-  return database;
+  globalForDb.postgresClient = client;
+  globalForDb.drizzleDb = drizzle(client);
+  return globalForDb.drizzleDb;
 }

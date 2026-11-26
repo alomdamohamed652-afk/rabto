@@ -1,7 +1,9 @@
 import { and, eq, ne, isNotNull } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { getDb } from "@/db";
 import { linkDestinations, productCodes, products } from "@/db/schema";
+import { makeScanRecorder } from "@/lib/analytics";
+import { recordWithRetry } from "@/lib/analytics-rules.mjs";
 
 export const runtime = "nodejs";
 
@@ -28,7 +30,7 @@ export async function GET(
   try {
     const db = getDb();
     const [record] = await db
-      .select({ destination: linkDestinations.currentUrl })
+      .select({ destination: linkDestinations.currentUrl, productId: products.id, workspaceId: products.workspaceId, channel: productCodes.channel })
       .from(productCodes)
       .innerJoin(products, eq(products.id, productCodes.productId))
       .innerJoin(linkDestinations, eq(linkDestinations.productCodeId, productCodes.id))
@@ -57,6 +59,13 @@ export async function GET(
         headers: { "Cache-Control": "no-store, max-age=0" }
       });
     }
+
+    // Non-blocking analytics: runs after the response is sent (Next after()), bounded and never throws.
+    const recordScan = makeScanRecorder({ workspaceId: record.workspaceId, productId: record.productId, channel: record.channel });
+    after(async () => {
+      const result = await recordWithRetry(recordScan);
+      if (result !== "ok") console.error("RABTO scan event not recorded:", result);
+    });
 
     return NextResponse.redirect(destination, {
       status: 302,
