@@ -7,21 +7,12 @@ import { appendFileSync } from "node:fs";
  * caller is told so (it must still answer the user uniformly).
  */
 /**
- * The file sink writes reset codes in clear text, so it must be impossible on a live service.
- * Outside production it needs only the sink variable. In a production build (the isolated test
- * harness runs one) it ALSO needs the explicit flag, a database on this machine (loopback host)
- * and a sink path under /tmp. A real deployment has a remote database, so it can never qualify.
+ * The file sink writes reset codes in clear text, so it is denied unconditionally when
+ * NODE_ENV is "production". There is no override. Tests run the app with NODE_ENV=test.
  */
 function sinkPath(): string | null {
-  const sink = process.env.RABTO_MAIL_SINK_FILE;
-  if (!sink) return null;
-  if (process.env.NODE_ENV !== "production") return sink;
-  if (process.env.RABTO_E2E_ALLOW_SINK !== "1") return null;
-  let host = "";
-  try { host = new URL(process.env.DATABASE_URL ?? "").hostname; } catch { return null; }
-  if (!["127.0.0.1", "localhost", "::1", "[::1]"].includes(host)) return null;
-  if (!sink.startsWith("/tmp/") || sink.includes("..")) return null;
-  return sink;
+  if (process.env.NODE_ENV === "production") return null;
+  return process.env.RABTO_MAIL_SINK_FILE || null;
 }
 
 export function mailTransportAvailable(): boolean {

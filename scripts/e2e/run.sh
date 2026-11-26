@@ -31,10 +31,13 @@ psql -q rabto_e2e -c "insert into users (email,password_hash,platform_role) valu
 export SESSION_SECRET="test-only-secret-test-only-secret-123"
 export ANALYTICS_CONSUMER_SECRET="e2e-analytics-secret-0123456789abcdef"
 export DATABASE_URL="postgres://postgres@127.0.0.1:$PORT_DB/rabto_e2e"
-export RABTO_E2E_ALLOW_SINK=1 RABTO_MAIL_SINK_FILE="$TMP/mail.jsonl" E2E_MAIL_SINK="$TMP/mail.jsonl"
-[ "${E2E_NO_SINK:-}" = 1 ] && unset RABTO_MAIL_SINK_FILE RABTO_E2E_ALLOW_SINK
+export RABTO_MAIL_SINK_FILE="$TMP/mail.jsonl" E2E_MAIL_SINK="$TMP/mail.jsonl"
+[ "${E2E_NO_SINK:-}" = 1 ] && unset RABTO_MAIL_SINK_FILE
 export E2E_BASE_URL="http://127.0.0.1:$PORT_APP"
-(cd "$RABTO_DIR" && exec node node_modules/next/dist/bin/next start -p "$PORT_APP" >"$TMP/next.log" 2>&1) &
+NEXT_CMD=dev; NEXT_ENV=development
+# E2E_PROD=1 runs the real production build (next start): needed for browser UI flows (ui*) and to prove the production-only sink denial. Default is dev mode, where the test mail sink is allowed.
+[ "${E2E_PROD:-}" = 1 ] && { NEXT_CMD=start; NEXT_ENV=production; }
+(cd "$RABTO_DIR" && NODE_ENV=$NEXT_ENV exec node node_modules/next/dist/bin/next $NEXT_CMD -p "$PORT_APP" >"$TMP/next.log" 2>&1) &
 APP_PID=$!
-for _ in $(seq 1 40); do curl -s -o /dev/null "$E2E_BASE_URL/login" && break; sleep 1; done
+for _ in $(seq 1 90); do curl -s -o /dev/null "$E2E_BASE_URL/login" && curl -s -o /dev/null "$E2E_BASE_URL/api/auth/login" && break; sleep 1; done
 (cd "$HERE" && node "$FLOW")
