@@ -320,3 +320,11 @@ input:user-invalid, textarea:user-invalid, select:user-invalid { background: #fb
 .support-stamp{direction:ltr;unicode-bidi:isolate;display:inline-block}
 .admin-form textarea{background:var(--paper-deep)}
 .plan-title{margin:0 0 8px;font-size:var(--fs-xl);letter-spacing:-.02em;line-height:1.3}
+
+/* Consistency layer: one rhythm, one button height, one field look across the customer dashboard (AR and EN). */
+.admin-shell .admin-main > .admin-panel, .admin-shell .admin-main > section.admin-panel { margin: 0 0 18px; }
+.panel-heading > .menu-btn, .panel-heading > button { align-self: flex-start; }
+.admin-shell .admin-primary, .admin-shell .admin-secondary, .admin-shell .menu-btn { min-height: 48px; }
+.admin-shell .menu-btn { border-radius: 14px; font-size: var(--fs-md); }
+.admin-shell .item-card > .menu-btn { min-height: 44px; }
+.admin-shell .admin-panel h3 { font-size: var(--fs-lg); }

@@ -44,9 +44,9 @@ export default function EmailVerifyPanel({ lang = "ar" }: { lang?: Lang }) {
       {verified ? <p className="admin-notice" role="status">{t.verified}</p> : <div className="admin-form">
         {msg && <p className="admin-notice" role="status">{msg}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
-        {!sent ? (!mailOk ? <p className="admin-notice" role="status">{t.notActive}</p> : <button type="button" className="admin-primary" disabled={busy} onClick={() => void send()}>{t.send} <span>←</span></button>) : <form onSubmit={confirm} className="auth-form">
+        {!sent ? (!mailOk ? <p className="admin-notice" role="status">{t.notActive}</p> : <button type="button" className="admin-primary" disabled={busy} onClick={() => void send()}>{t.send}</button>) : <form onSubmit={confirm} className="auth-form">
           <label>{t.code}<input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value)} /></label>
-          <button className="admin-primary" disabled={busy}>{t.confirm} <span>←</span></button>
+          <button className="admin-primary" disabled={busy}>{t.confirm}</button>
         </form>}
       </div>}
     </section>

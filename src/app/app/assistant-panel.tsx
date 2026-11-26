@@ -26,6 +26,7 @@ export default function AssistantPanel({ lang = "ar" }: { lang?: Lang }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [topic, setTopic] = useState("");
   useEffect(() => {
     let live = true;
     fetch("/api/customer/assistant").then((r) => (r.ok ? r.json() : Promise.reject())).then((j) => { if (live) { setTopics(j.topics || []); setContacts(j.contacts || []); } }).catch(() => { if (live) setError(T[lang].loadErr); });
@@ -47,15 +48,15 @@ export default function AssistantPanel({ lang = "ar" }: { lang?: Lang }) {
   const label = (c: Contact) => (lang === "ar" ? c.labelAr : c.labelEn) || (c.kind === "whatsapp" ? t.wa : t.mail);
   return <section className="admin-panel menu-editor assistant-panel" id="assistant" dir={lang === "ar" ? "rtl" : "ltr"}>
     <div className="panel-heading"><div><span className="panel-kicker">{t.kicker}</span><h2>{t.heading}</h2><p>{t.intro}</p></div></div>
-    {topics.length > 0 && <div className="assistant-faq"><h3>{t.faq}</h3>
-      {topics.map((tp) => <div key={tp.id} className="assistant-topic"><h4>{lang === "ar" ? tp.ar : tp.en}</h4>
-        <div className="assistant-chips">{tp.items.map((i) => { const text = lang === "ar" ? i.ar : i.en; return <button type="button" key={i.id} className="menu-btn" disabled={busy} onClick={() => void ask(text, i.id)}>{text}</button>; })}</div></div>)}</div>}
+    {topics.length > 0 && (() => { const cur = topics.find((x) => x.id === topic) || topics[0]; return <div className="assistant-faq"><h3>{t.faq}</h3>
+      <div className="assistant-tabs" role="tablist" aria-label={t.faq}>{topics.map((tp) => <button type="button" role="tab" key={tp.id} id={"faq-tab-" + tp.id} aria-selected={tp.id === cur.id} aria-controls="faq-panel" className={"menu-btn" + (tp.id === cur.id ? " solid" : "")} onClick={() => setTopic(tp.id)}>{lang === "ar" ? tp.ar : tp.en}</button>)}</div>
+      <div className="assistant-chips" role="tabpanel" id="faq-panel" aria-labelledby={"faq-tab-" + cur.id}>{cur.items.map((i) => { const text = lang === "ar" ? i.ar : i.en; return <button type="button" key={i.id} className="menu-btn assistant-q-btn" disabled={busy} onClick={() => void ask(text, i.id)}>{text}</button>; })}</div></div>; })()}
     <div className="assistant-log" aria-live="polite">{turns.map((x, i) => <div key={i} className="assistant-turn"><p className="assistant-q">{x.q}</p><p className="assistant-a">{x.a}</p>
       {x.matched && x.section && ANCHORS[x.section] && <a className="assistant-go" href={ANCHORS[x.section]}>{t.go}</a>}
       {x.matched ? <small>{t.source}</small> : <div className="assistant-support"><b>{t.needHelp}</b><div className="assistant-actions"><a className="menu-btn solid" href="#support">{t.ticket}</a>{x.contacts.map((c) => <a key={c.url} className="menu-btn" href={c.url} target="_blank" rel="noopener noreferrer">{label(c)}</a>)}</div></div>}
     </div>)}</div>
     {error && <p className="form-error" role="alert">{error}</p>}
-    <form className="assistant-form menu-form" onSubmit={submit}><input value={q} onChange={(e) => setQ(e.target.value)} maxLength={300} placeholder={t.ph} aria-label={t.ph} /><button className="menu-btn solid" type="submit" disabled={busy || !q.trim()}>{t.ask}</button></form>
+    <form className="assistant-form admin-form" onSubmit={submit}><input value={q} onChange={(e) => setQ(e.target.value)} maxLength={300} placeholder={t.ph} aria-label={t.ph} /><button className="menu-btn solid" type="submit" disabled={busy || !q.trim()}>{t.ask}</button></form>
     {contacts.length > 0 && <div className="assistant-actions assistant-contacts">{contacts.map((c) => <a key={c.url} className="menu-btn" href={c.url} target="_blank" rel="noopener noreferrer">{label(c)}</a>)}</div>}
   </section>;
 }

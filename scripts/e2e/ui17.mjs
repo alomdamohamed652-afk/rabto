@@ -12,7 +12,7 @@ for(const lang of ['ar','en']){
   const pg=await mk(ck);
   for(const [w,h,tag] of [[1440,900,'d'],[390,844,'m']]){
     await pg.setViewport({width:w,height:h,deviceScaleFactor:1.5});await pg.goto(B+'/app',{waitUntil:'networkidle0'});
-    await (await pg.$$('.assistant-chips button'))[1].click();await sl(800);
+    await (await pg.$$('.assistant-tabs button'))[2].click();await sl(300);await (await pg.$$('.assistant-chips button'))[1].click();await sl(800);
     const inp=await pg.$('.assistant-form input');await inp.type('zzz qqq');await pg.keyboard.press('Enter');await sl(900);
     await (await pg.$('#assistant')).screenshot({path:`/downloads/${pre}-${lang}-${tag}.png`});
     const info=await pg.evaluate(()=>({over:document.documentElement.scrollWidth>innerWidth,topics:document.querySelectorAll('.assistant-topic').length,btns:document.querySelectorAll('.assistant-actions a').length}));console.log(lang,tag,JSON.stringify(info));

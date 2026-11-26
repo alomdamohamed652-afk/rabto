@@ -35,12 +35,12 @@ export default function PhonePanel({ lang = "ar" }: { lang?: Lang }) {
     <section className="admin-panel provisioning-panel" id="phone-panel">
       <div className="panel-heading"><div><span className="panel-kicker">{t.kicker}</span><h2>{t.heading}</h2><p>{t.why}</p></div></div>
       <p className="auth-subtitle">{t.current}: <bdi dir="ltr">{tail ?? t.none}</bdi></p>
-      <form onSubmit={save} className="auth-form">
+      <form onSubmit={save} className="admin-form">
         <label>{t.phone}<input type="tel" inputMode="tel" autoComplete="tel" required maxLength={40} dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01012345678" /></label>
         <label>{t.password}<input type="password" autoComplete="current-password" required maxLength={128} value={password} onChange={(e) => setPassword(e.target.value)} /></label>
         {msg && <p className="admin-notice" role="status">{msg}</p>}
         {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="admin-primary" disabled={busy}>{t.save} <span>←</span></button>
+        <button className="admin-primary" disabled={busy}>{t.save}</button>
       </form>
     </section>
   );
