@@ -25,7 +25,9 @@ await call('/api/customer/email-verification',{method:'DELETE',cookie:c2}).catch
 q("update users set email_verified_at=null where email='"+E+"'");
 const ok1=await call('/api/customer/email-verification',{method:'POST',cookie:c2});
 const vc=allMails().filter(x=>x.to===E&&/confirmation code/.test(x.subject||'')).pop().text.match(/\b(\d{6})\b/)[1];const vw=vc==='000000'?'111111':'000000';
-await Promise.all(Array.from({length:30},()=>call('/api/customer/email-verification',{method:'PUT',cookie:c2,body:{code:vw}})));
+const pre=Number(q("select coalesce(sum(failed_count),0) from login_attempts where key_type='emailverify_confirm_user'"));
+const par=await Promise.all(Array.from({length:30},()=>call('/api/customer/email-verification',{method:'PUT',cookie:c2,body:{code:vw}})));
+const n429=par.filter(r=>r.s===429).length;chk('30 parallel PUTs: admitted count equals the remaining per-user ceiling exactly (20 minus earlier counted attempts)',30-n429===20-pre,'earlier counted '+pre+', admitted '+(30-n429)+', refused '+n429);
 chk('per-user hourly confirm limit engaged (429 seen)',(await call('/api/customer/email-verification',{method:'PUT',cookie:c2,body:{code:vw}})).s===429);
 const att2=Number(q("select max(attempts) from email_verification_codes where used_at is null"));
 chk('30 parallel wrong verification guesses: attempts capped at 5',ok1.s===200&&att2===5,'attempts '+att2);
