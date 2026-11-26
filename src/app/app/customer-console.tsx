@@ -16,11 +16,16 @@ type Product = {
   productionStage: string | null; productTypeName: string; codes: ProductCode[];
 };
 
-const PRODUCT_STATUS_LABELS: Record<string, string> = {
-  draft: t(lang, "statusDraft"), produced: t(lang, "statusProduced"), claimed: t(lang, "statusClaimed"), archived: t(lang, "statusArchived"),
+const PRODUCT_STATUS_KEYS: Record<string, MessageKey> = {
+  draft: "statusDraft",
+  produced: "statusProduced",
+  claimed: "statusClaimed",
+  archived: "statusArchived",
 };
-const WORKSPACE_ROLE_LABELS: Record<Workspace["role"], string> = {
-  owner: t(lang, "roleOwner"), admin: t(lang, "roleAdmin"), member: t(lang, "roleMember"),
+const WORKSPACE_ROLE_KEYS: Record<Workspace["role"], MessageKey> = {
+  owner: "roleOwner",
+  admin: "roleAdmin",
+  member: "roleMember",
 };
 const PRODUCT_PAGE_SIZE = 24;
 const resolverBaseUrl = (() => {
