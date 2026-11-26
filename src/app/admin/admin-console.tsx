@@ -99,7 +99,7 @@ export default function AdminConsole() {
       try {
         await loadTypes();
       } catch (cause) {
-        if (active) setError(cause instanceof Error ? cause.message : t(langRef.current, "createProductTypeError"));
+        if (active) setError(cause instanceof Error ? cause.message : t(langRef.current, "loadProductTypesError"));
       }
     }
     void initializeTypes();
