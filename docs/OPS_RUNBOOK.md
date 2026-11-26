@@ -24,8 +24,8 @@ Password reset and email verification stay "not active" until a transport is con
 - Final identity asset (a CSS placeholder mark is in use).
 
 ## Operations to set up on whatever host is chosen
-- Backups of PostgreSQL with a tested restore.
-- Monitoring and alerting on 5xx rate, database connectivity and mail failures.
+- Backups: `scripts/ops/backup.sh <dir> [keep]` writes a pg_dump custom-format file (mode 600, newest N kept) and `scripts/ops/restore-verify.sh <dump> restore_check_<name>` restores it into a throwaway database and prints row counts. Both are tested against a local Postgres (`scripts/e2e/ops1.mjs`). Scheduling them, encrypted off-site storage and a real restore drill on the chosen host are NOT done. Dumps hold customer data: never commit them.
+- Monitoring: `GET /api/health` returns `{"ok":true}` after a database round trip (503 `{"ok":false}` otherwise). Point an uptime monitor at it. Alerting on 5xx rate and mail failures is NOT set up.
 - Scan resolver isolation and caching: see `docs/RESOLVER.md`. The separate resolver service, edge cache and worker are not built.
 - Run the migration step before starting a new version.
 
