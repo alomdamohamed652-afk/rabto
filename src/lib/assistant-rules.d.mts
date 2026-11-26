@@ -1,5 +1,11 @@
-export function normalize(text: unknown): string;
-export function answer(question: string, lang?: "ar" | "en"): { matched: boolean; id: string | null; section: string | null; text: string };
-export function validateQuestion(body: unknown): { ok: false } | { ok: true; question: string; lang: "ar" | "en" };
+export declare function normalize(text: unknown): string;
+export declare function answer(question: string, lang?: "ar" | "en", index?: GuideIndex): { matched: boolean; id: string | null; section: string | null; text: string };
+export declare function validateQuestion(body: unknown): { ok: false } | { ok: true; question: string; lang: "ar" | "en" };
 export const GUIDE: Array<{ id: string; section: string; kw: string[]; ar: string; en: string }>;
 export const FALLBACK: { ar: string; en: string };
+export declare const FAQ_TOPICS: Array<{ id: string; ar: string; en: string; items: Array<{ id: string; ar: string; en: string }> }>;
+export declare function answerById(id: string, lang?: "ar" | "en"): { matched: true; id: string; section: string; text: string } | null;
+export type GuideEntry = { id: string; section: string; kw: string[]; ar: string; en: string };
+export type GuideIndex = Array<{ g: GuideEntry; kws: Array<{ w: string; strong: boolean }> }>;
+export declare function buildIndex(entries: GuideEntry[]): GuideIndex;
+export declare const TOPICS: Array<{ id: string; ar: string; en: string }>;

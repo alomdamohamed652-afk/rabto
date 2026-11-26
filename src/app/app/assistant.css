@@ -1,10 +1,18 @@
-.assistant-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
-.assistant-log{display:grid;gap:14px;margin:8px 0 14px}
-.assistant-turn{display:grid;gap:6px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:#fbfaf6}
-.assistant-q{margin:0;font-weight:700}
-.assistant-a{margin:0;line-height:1.8}
-.assistant-go{font-weight:600;border-bottom:2px solid var(--sage-deep);justify-self:start}
-.assistant-turn small{color:var(--muted);font-size:14px}
-.assistant-form{display:flex;gap:10px;align-items:stretch}
-.assistant-form input{flex:1;min-width:0;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit;color:var(--ink)}
-@media (max-width:640px){.assistant-form{flex-direction:column}}
+/* Uses the shared card (18px radius, soft shadow), button (.menu-btn) and field styles; only layout lives here. */
+.assistant-faq h3 { margin: 18px 0 6px; font-size: var(--fs-lg); }
+.assistant-topic h4 { margin: 14px 0 8px; font-size: var(--fs-md); color: var(--sage-ink); }
+.assistant-chips, .assistant-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.assistant-actions { margin-top: 10px; }
+.assistant-contacts { margin-top: 16px; }
+.assistant-chips .menu-btn { text-align: start; }
+.assistant-log { display: grid; gap: 14px; margin: 18px 0 14px; }
+.assistant-turn { display: grid; gap: 8px; padding: 16px 18px; border-radius: 18px; background: #fffefa; box-shadow: 0 8px 22px rgba(32,35,31,.07), 0 1px 2px rgba(32,35,31,.05); }
+.assistant-q { margin: 0; font-weight: 700; font-size: var(--fs-base); }
+.assistant-a { margin: 0; line-height: 1.8; font-size: var(--fs-base); }
+.assistant-go { justify-self: start; font-weight: 700; font-size: var(--fs-sm); border-bottom: 2px solid var(--sage-deep); }
+.assistant-turn small { color: var(--muted); font-size: var(--fs-xs); }
+.assistant-support b { font-size: var(--fs-sm); }
+.assistant-support .menu-btn, .assistant-contacts .menu-btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.assistant-form { display: flex; gap: 10px; align-items: stretch; }
+.assistant-form input { flex: 1; min-width: 0; }
+@media (max-width: 640px) { .assistant-form { flex-direction: column; } }

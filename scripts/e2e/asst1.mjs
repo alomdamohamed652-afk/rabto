@@ -11,7 +11,7 @@ chk('empty and over-long questions get 400',(await ask('   ','ar')).s===400&&(aw
 const p=await ask('ازاي انشر المنيو؟','ar');chk('Arabic publish question answered from the guide, section menus',p.s===200&&p.j.matched&&p.j.section==='menus'&&/نشر/.test(p.j.text)&&p.j.source==='built-in guide');
 const ph=await ask('Can I upload a photo?','en');chk('English photo question says upload is not available',ph.j.matched&&/not available yet/.test(ph.j.text));
 const pay=await ask('can customers pay online','en');chk('payment question says online payment is not available',pay.j.matched&&/not available/.test(pay.j.text));
-const un=await ask('what is the weather in Cairo','en');chk('unknown question gets the honest fallback, not an invented answer',un.s===200&&!un.j.matched&&un.j.section===null);
+const un=await ask('what is the weather in Cairo','en');chk('unknown question gets the honest fallback, not an invented answer',un.s===200&&!un.j.matched&&un.j.section==='support'&&Array.isArray(un.j.contacts));
 const pr=await ask('what is my plan price','en');chk('plan answer contains no digits (no invented prices or limits)',!/\d/.test(pr.j.text));
 const par=await Promise.all(Array.from({length:70},()=>ask('menu','en')));
 const n429=par.filter(r=>r.s===429).length;

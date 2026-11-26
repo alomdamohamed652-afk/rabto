@@ -403,3 +403,32 @@ export const supportMessages = pgTable("support_messages", {
   body: text("body").notNull(),
   createdAt: createdAt()
 }, (t) => [index("support_messages_ticket_idx").on(t.ticketId, t.createdAt), check("support_messages_body_len", sql`char_length(${t.body}) between 1 and 4000`)]);
+
+/** Help guide content and FAQ entries, edited by platform admins. Seeded from the built-in defaults on first read. */
+export const guideEntries = pgTable("guide_entries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: varchar("slug", { length: 60 }).notNull().unique(),
+  topic: varchar("topic", { length: 20 }).notNull(),
+  section: varchar("section", { length: 20 }).notNull().default("none"),
+  faqAr: varchar("faq_ar", { length: 200 }).notNull().default(""),
+  faqEn: varchar("faq_en", { length: 200 }).notNull().default(""),
+  answerAr: text("answer_ar").notNull(),
+  answerEn: text("answer_en").notNull(),
+  keywords: text("keywords").notNull().default(""),
+  visible: boolean("visible").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
+}, (t) => [check("guide_entries_answer_len", sql`char_length(${t.answerAr}) between 1 and 2000 and char_length(${t.answerEn}) between 1 and 2000`)]);
+
+/** Support contact channels shown in the help guide. Values are validated before saving. */
+export const supportContacts = pgTable("support_contacts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  kind: varchar("kind", { length: 10 }).notNull(),
+  value: varchar("value", { length: 320 }).notNull(),
+  labelAr: varchar("label_ar", { length: 80 }).notNull().default(""),
+  labelEn: varchar("label_en", { length: 80 }).notNull().default(""),
+  visible: boolean("visible").notNull().default(true),
+  createdAt: createdAt(),
+  updatedAt: updatedAt()
+}, (t) => [check("support_contacts_kind", sql`${t.kind} in ('whatsapp','email')`)]);
