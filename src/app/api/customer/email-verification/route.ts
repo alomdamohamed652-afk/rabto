@@ -56,8 +56,9 @@ export async function PUT(request: Request) {
     const db = getDb();
     // Per-user ceiling on confirmation attempts across all codes (the per-code cap alone resets with each new code).
     const pk: RateLimitKey = { keyType: "emailverify_confirm_user", keyHash: rateLimitHash("emailverify-confirm-user:" + userId) };
-    if (!activeLock(await readRateLimitRows(db, [pk])).allowed) return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
-    await recordRateLimitFailure(db, pk, 20, 3600);
+    // Count first, then decide on the returned count, so parallel requests cannot all pass a stale read.
+    const counted = await recordRateLimitFailure(db, pk, 20, 3600, false);
+    if (counted.failedCount > 20) return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
     const [row] = await db.select().from(emailVerificationCodes).where(and(eq(emailVerificationCodes.userId, userId), isNull(emailVerificationCodes.usedAt))).orderBy(desc(emailVerificationCodes.createdAt)).limit(1);
     if (!codeUsable(row)) return BAD;
     const reserved = await db.update(emailVerificationCodes).set({ attempts: sql`${emailVerificationCodes.attempts} + 1` }).where(and(eq(emailVerificationCodes.id, row.id), isNull(emailVerificationCodes.usedAt), sql`${emailVerificationCodes.attempts} < ${RESET_POLICY.maxAttempts}`, sql`${emailVerificationCodes.expiresAt} > now()`)).returning({ id: emailVerificationCodes.id });
