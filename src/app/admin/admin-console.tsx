@@ -45,7 +45,7 @@ export default function AdminConsole() {
   const loadCustomers = useCallback(async () => {
     const response = await fetch("/api/admin/customers?limit=25&offset=0", { cache: "no-store" });
     const data = await response.json() as { customers?: Customer[]; hasMore?: boolean; error?: string };
-    if (!response.ok) throw new Error(data.error || t(langRef.current, "loadProductsError"));
+    if (!response.ok) throw new Error(data.error || t(langRef.current, "loadCustomersError"));
     setCustomers(data.customers || []);
     setCustomersHasMore(Boolean(data.hasMore));
     if (data.customers?.[0]) setSelectedWorkspace((current) => current || data.customers![0].workspaceId);
@@ -57,7 +57,7 @@ export default function AdminConsole() {
     try {
       const response = await fetch(`/api/admin/customers?limit=25&offset=${customers.length}`, { cache: "no-store" });
       const data = await response.json() as { customers?: Customer[]; hasMore?: boolean; error?: string };
-      if (!response.ok) throw new Error(data.error || t(langRef.current, "loadMoreProductsError"));
+      if (!response.ok) throw new Error(data.error || t(langRef.current, "loadMoreCustomersError"));
       setCustomers((current) => [...current, ...(data.customers || [])]);
       setCustomersHasMore(Boolean(data.hasMore));
     } catch (cause) {
@@ -71,7 +71,7 @@ export default function AdminConsole() {
     if (!selectedWorkspace) { setTypes([]); return; }
     const response = await fetch(`/api/admin/product-types?workspaceId=${encodeURIComponent(selectedWorkspace)}`, { cache: "no-store" });
     const data = await response.json() as { productTypes?: ProductType[]; error?: string };
-    if (!response.ok) throw new Error(data.error || t(langRef.current, "createProductTypeError"));
+    if (!response.ok) throw new Error(data.error || t(langRef.current, "loadProductTypesError"));
     setTypes(data.productTypes || []);
     setProductTypeId(data.productTypes?.[0]?.id || "");
   }, [selectedWorkspace]);
