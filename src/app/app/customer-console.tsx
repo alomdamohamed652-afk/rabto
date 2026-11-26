@@ -42,7 +42,10 @@ function productResolverUrl(publicCode: string) {
 }
 
 export default function CustomerConsole({ email, workspaces }: { email: string; workspaces: Workspace[] }) {
-  const router = useRouter();\n  const lang = useLanguage();
+  const router = useRouter();
+  const lang = useLanguage();
+  const langRef = useRef(lang);
+  langRef.current = lang;
   const [workspaceId, setWorkspaceId] = useState(workspaces[0]?.workspaceId || "");
   const [products, setProducts] = useState<Product[]>([]);
   const [hasMoreProducts, setHasMoreProducts] = useState(false);
