@@ -12,7 +12,7 @@ function scrypt(password: string, salt: Buffer, keyLength: number, options: { N:
     });
   });
 }
-const SESSION_COOKIE = "rabto_session";
+export const SESSION_COOKIE = "rabto_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 function sessionSecret(): string {

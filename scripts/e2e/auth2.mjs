@@ -42,4 +42,8 @@ chk('new login (by phone) works with new password',nl.s===200);
 chk('new session valid',(await call('/api/customer/plan?workspaceId='+WS,{cookie:nl.cookie})).s===200);
 chk('login with a loser password fails',(await call('/api/auth/login',{method:'POST',body:{email:E,password:NP+(winner%4+1)},ip:'10.8.3.2'})).s===401);
 chk('admin session unaffected',(await call('/api/admin/plans',{cookie:A})).s===200);
+const lo=await call('/api/auth/logout',{method:'POST',cookie:nl.cookie});
+chk('logout answers 200 and clears the cookie',lo.s===200);
+chk('a copied token no longer works after logout (server side)',(await call('/api/customer/plan?workspaceId='+WS,{cookie:nl.cookie})).s===401);
+chk('logout without a session still answers 200',(await call('/api/auth/logout',{method:'POST'})).s===200);
 console.log(out.join('\n'));process.exit(bad?1:0);
