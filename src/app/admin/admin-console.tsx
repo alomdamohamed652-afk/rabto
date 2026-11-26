@@ -8,6 +8,7 @@ import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t } from "@/lib/i18n/messages";
 import CodeTools from "./code-tools";
 import PlansPanel from "./plans-panel";
+import SupportPanel from "../app/support-panel";
 import type { PlanRow } from "./plans-panel";
 
 type Customer = {
@@ -196,6 +197,7 @@ export default function AdminConsole() {
             {customersHasMore && <button type="button" className="list-more" onClick={() => void loadMoreCustomers()} disabled={customersLoadingMore}>{customersLoadingMore ? t(lang, "loadingMore") : t(lang, "showMoreCustomers")}</button>}
           </section>
         </div>
+        <SupportPanel mode="admin" lang={lang === "en" ? "en" : "ar"} />
         <PlansPanel plans={plansList} customers={customers} lang={lang === "en" ? "en" : "ar"} onChanged={() => void loadPlans()} />
         <section className="admin-panel provisioning-panel" id="provisioning">
           <div className="panel-heading"><div><span className="panel-kicker">{t(lang, "productOperations")}</span><h2>{t(lang, "productOperationsLabel")}</h2><p>{t(lang, "productOperationsDescription")}</p></div><span className="panel-index">03</span></div>
