@@ -15,6 +15,13 @@
       "when": 1795740000000,
       "tag": "0001_persistent_rate_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795826400000,
+      "tag": "0002_credit_ledger_integrity",
+      "breakpoints": true
     }
   ]
 }

@@ -164,9 +164,11 @@ export const creditLedger = pgTable("credit_ledger", {
   balanceAfter: integer("balance_after").notNull(),
   reason: text("reason").notNull(),
   referenceId: uuid("reference_id"),
+  idempotencyKey: varchar("idempotency_key", { length: 120 }).notNull(),
   actorUserId: uuid("actor_user_id").references(() => users.id),
   createdAt: createdAt()
 }, (t) => [
+  uniqueIndex("credit_ledger_account_idempotency_unique").on(t.accountId, t.idempotencyKey),
   index("credit_ledger_account_created_idx").on(t.accountId, t.createdAt),
   check("credit_ledger_amount_nonzero", sql`${t.amount} <> 0`)
 ]);
