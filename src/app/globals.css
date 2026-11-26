@@ -214,3 +214,8 @@ html[lang="en"] .auth-brand, html[lang="en"] .wordmark { font-family: Manrope, A
   .nav-actions { gap: 8px; }
   .language-switcher { padding: 7px 9px; }
 }
+
+.admin-header-actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+@media (max-width: 680px) {
+  .admin-header-actions { gap: 7px; }
+}
