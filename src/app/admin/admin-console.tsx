@@ -155,7 +155,7 @@ export default function AdminConsole() {
   return (
     <main className="admin-shell">
       <aside className="admin-sidebar">
-        <div className="admin-brand-row"><Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link><LanguageSwitcher lang={lang} /></div>
+        <Link className="auth-brand" href="/"><span className="brand-symbol"><span /></span><b>RABTO</b></Link>
         <p className="sidebar-label">{t(langRef.current, "platformManagement")}</p>
         <a className="sidebar-link active" href="#overview">{t(langRef.current, "overview")}</a>
         <a className="sidebar-link" href="#customers">{t(langRef.current, "customersWorkspaces")}</a>
@@ -163,7 +163,7 @@ export default function AdminConsole() {
         <div className="sidebar-bottom"><span className="status-dot" /> {t(langRef.current, "platformReady")}</div>
       </aside>
       <section className="admin-main">
-        <header className="admin-header"><div><p className="eyebrow">{t(langRef.current, "controlCenter")}</p><h1>{t(langRef.current, "adminTitle")}</h1><p>{t(langRef.current, "adminDescription")}</p></div><button className="admin-logout" type="button" onClick={logout}>{t(langRef.current, "logout")} ↗</button></header>
+        <header className="admin-header"><div><p className="eyebrow">{t(langRef.current, "controlCenter")}</p><h1>{t(langRef.current, "adminTitle")}</h1><p>{t(langRef.current, "adminDescription")}</p></div><div className="admin-header-actions"><LanguageSwitcher lang={lang} /><button className="admin-logout" type="button" onClick={logout}>{t(langRef.current, "logout")} ↗</button></div></header>
         <section className="admin-stats" id="overview">
           <article><span>{t(langRef.current, "workspaces")}</span><strong>{customers.length}</strong><small>{t(langRef.current, "registeredWorkspaces")}</small></article>
           <article><span>{t(langRef.current, "productTypes")}</span><strong>{types.length}</strong><small>{t(langRef.current, "selectedCustomer")}</small></article>
