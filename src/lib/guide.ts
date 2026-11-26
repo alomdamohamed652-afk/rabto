@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditLogs, guideEntries, supportContacts } from "@/db/schema";
 import { FAQ_TOPICS, GUIDE, TOPICS, type GuideEntry } from "@/lib/assistant-rules.mjs";
@@ -23,15 +23,19 @@ function seedRows() {
 /** Seeds the defaults once, under a lock, so concurrent first reads cannot double-insert. */
 export async function ensureSeeded() {
   const db = getDb();
-  const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(guideEntries);
+  const rows = seedRows();
+  const slugs = rows.map((r) => r.slug);
+  const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(guideEntries).where(inArray(guideEntries.slug, slugs));
   const [{ c }] = await db.select({ c: sql<number>`count(*)::int` }).from(supportContacts);
-  if (n > 0 && c > 0) return;
+  if (n >= slugs.length && c > 0) return;
   await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext('guide:seed'))`);
-    const [{ n2 }] = await tx.select({ n2: sql<number>`count(*)::int` }).from(guideEntries);
-    if (n2 === 0) await tx.insert(guideEntries).values(seedRows()).onConflictDoNothing();
+    const [{ total }] = await tx.select({ total: sql<number>`count(*)::int` }).from(guideEntries);
+    // Missing defaults are added; existing rows (edited or hidden by an admin) are never touched.
+    await tx.insert(guideEntries).values(rows).onConflictDoNothing();
     const [{ c2 }] = await tx.select({ c2: sql<number>`count(*)::int` }).from(supportContacts);
-    if (c2 === 0 && n === 0) await tx.insert(supportContacts).values(SEED_CONTACTS);
+    // The owner's WhatsApp number is only seeded on a fresh install, never re-added after an admin removed it.
+    if (c2 === 0 && total <= 1) await tx.insert(supportContacts).values(SEED_CONTACTS);
   });
 }
 
@@ -66,6 +70,9 @@ export async function saveEntry(a: { actorId: string; id?: string; values: Patch
     if (a.id) {
       const [cur] = await tx.select().from(guideEntries).where(eq(guideEntries.id, a.id)).for("update");
       if (!cur) throw new GuideError(404, "Entry not found.");
+      // A partial update must not leave a FAQ question in only one language.
+      const nAr = String(a.values.faqAr ?? cur.faqAr ?? ""), nEn = String(a.values.faqEn ?? cur.faqEn ?? "");
+      if ((nAr === "") !== (nEn === "")) throw new GuideError(400, "Write the FAQ question in both languages, or leave both empty.");
       try { await tx.update(guideEntries).set({ ...a.values, updatedAt: new Date() }).where(eq(guideEntries.id, a.id)); }
       catch { throw new GuideError(409, "That slug is already used."); }
       await tx.insert(auditLogs).values({ actorUserId: a.actorId, action: "guide.entry_updated", entityType: "guide_entry", entityId: a.id, details: { slug: cur.slug, fields: Object.keys(a.values) } });

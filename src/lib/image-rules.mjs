@@ -17,6 +17,23 @@ export function validateImageBytes(bytes) {
   if (!bytes || bytes.length < IMAGE_LIMITS.minBytes) return { ok: false, code: "empty" };
   if (bytes.length > IMAGE_LIMITS.maxBytes) return { ok: false, code: "too_large" };
   const kind = sniffImage(bytes);
-  if (!kind) return { ok: false, code: "bad_type" };
+  if (!kind || !wellFormed(kind, bytes)) return { ok: false, code: "bad_type" };
   return { ok: true, kind, ...TYPES[kind] };
+}
+
+/** Cheap structure checks (not a full decode): a signature alone is not enough to accept a file. */
+function wellFormed(kind, b) {
+  const n = b.length;
+  if (kind === "png") {
+    const ihdr = b[12] === 0x49 && b[13] === 0x48 && b[14] === 0x44 && b[15] === 0x52 && b[11] === 0x0d; // IHDR chunk length is 13
+    const iend = [0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82].every((v, i) => b[n - 8 + i] === v);
+    return ihdr && iend;
+  }
+  if (kind === "jpeg") {
+    let e = n; while (e > 0 && b[e - 1] === 0) e--; // tolerate zero padding
+    return e >= 2 && b[e - 2] === 0xff && b[e - 1] === 0xd9;
+  }
+  // webp: RIFF size field must match the real length
+  const size = b[4] | (b[5] << 8) | (b[6] << 16) | (b[7] * 16777216);
+  return size + 8 === n || size + 9 === n; // RIFF pads to even length
 }

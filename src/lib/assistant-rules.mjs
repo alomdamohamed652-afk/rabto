@@ -26,6 +26,10 @@ export const GUIDE = [
     kw: ["!نشر", "!انشر", "!publish", "published", "draft", "مسوده", "live", "منشور"],
     ar: "المنيو بيفضل مسودة لحد ما تضغط «نشر». بعد النشر بتظهر نسخة جديدة للزبون، وأي تعديل بعدها بيظهر «فيه تعديلات لم تُنشر» لحد ما تنشره تاني. تقدر تفتح الصفحة المنشورة من زر «فتح الصفحة المنشورة».",
     en: "A menu stays a draft until you press \"Publish\". Publishing makes a new version visible to guests; later edits show \"Has unpublished changes\" until you publish again. Use \"Open published page\" to see the live page." },
+  { id: "links", section: "links",
+    kw: ["!سوشيال", "!social", "!فيسبوك", "!facebook", "!انستجرام", "!instagram", "!تيك", "!tiktok", "!linktree", "حساباتي", "حسابات", "روابط", "لينكات", "links", "bio", "profile", "بروفايل", "نبذه"],
+    ar: "من قسم «صفحة الروابط والسوشيال» اكتب اسمك ونبذة قصيرة (وصورة برابط https لو حابب)، واختار اللغة، وبعدين اضغط «إضافة حساب» واختار المنصة (واتساب، إنستجرام، فيسبوك، تيك توك، يوتيوب وغيرهم) وحط الرابط أو الرقم. تقدر تضيف رابط مخصص وترتب الأزرار فوق وتحت. اضغط «نشر» وافتح الصفحة المنشورة. دي الصفحة اللي بتفتح للزبون لما يلمس المنتج.",
+    en: "In \"Links and social page\" enter your name and a short bio (and an https photo link if you like), pick the language, then press \"Add account\" and choose the platform (WhatsApp, Instagram, Facebook, TikTok, YouTube and more) and enter the link or number. You can add a custom link and move buttons up or down. Press \"Publish\" and open the published page. This is the page a customer opens when they tap the product." },
   { id: "preview", section: "menus",
     kw: ["!معاينه", "!preview", "شكل", "هيظهر", "look"],
     ar: "زر «معاينة المنيو» بيعرض شكل المنيو زي ما الزبون هيشوفه بعد النشر، والأصناف المخفية مش بتظهر فيه.",
@@ -123,6 +127,7 @@ export const FAQ_TOPICS = [
   { id: "menus", ar: "المنيو والصفحات", en: "Menus and pages", items: [
     { id: "menu", ar: "ازاي أعمل منيو وأضيف أصناف؟", en: "How do I create a menu and add items?" },
     { id: "publish", ar: "ازاي أنشر المنيو؟", en: "How do I publish the menu?" },
+    { id: "links", ar: "فين أحط فيسبوك وتيك توك وواتساب؟", en: "Where do I add Facebook, TikTok and WhatsApp?" },
     { id: "hide", ar: "ازاي أخفي صنف؟", en: "How do I hide an item?" },
     { id: "photos", ar: "هل أقدر أرفع صورة؟", en: "Can I upload a photo?" },
     { id: "price", ar: "ازاي أحط السعر؟", en: "How do I set prices?" } ] },

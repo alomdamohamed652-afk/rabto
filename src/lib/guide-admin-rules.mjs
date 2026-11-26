@@ -1,6 +1,6 @@
 // Validation for admin-edited guide content and support contacts. Pure, no network.
 export const GUIDE_TOPICS = ["menus", "products", "account", "help"];
-export const GUIDE_SECTIONS = ["menus", "plan", "products", "insights", "support", "verify", "phone", "workspace", "login", "language", "none"];
+export const GUIDE_SECTIONS = ["menus", "plan", "products", "insights", "links", "support", "verify", "phone", "workspace", "login", "language", "none"];
 export const GUIDE_LIMITS = Object.freeze({ slug: 60, faq: 200, answer: 2000, keywords: 1000 });
 const SLUG = /^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$/;
 const CTRL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;

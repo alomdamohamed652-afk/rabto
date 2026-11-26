@@ -13,7 +13,8 @@ const ph=await ask('Can I upload a photo?','en');chk('English photo question say
 const pay=await ask('can customers pay online','en');chk('payment question says online payment is not available',pay.j.matched&&/not available/.test(pay.j.text));
 const un=await ask('what is the weather in Cairo','en');chk('unknown question gets the honest fallback, not an invented answer',un.s===200&&!un.j.matched&&un.j.section==='support'&&Array.isArray(un.j.contacts));
 const pr=await ask('what is my plan price','en');chk('plan answer contains no digits (no invented prices or limits)',!/\d/.test(pr.j.text));
+for(const [l,q] of [['ar','عايز اعمل صفحة فيها حساباتي فيسبوك وتيك توك'],['en','where do I add my Facebook and TikTok links']]){const r=await ask(q,l);chk('links question answers with the links page entry ('+l+')',r.s===200&&r.j.matched===true&&r.j.section==='links',JSON.stringify(r.j).slice(0,80));}
 const par=await Promise.all(Array.from({length:70},()=>ask('menu','en')));
 const n429=par.filter(r=>r.s===429).length;
-chk('per-user ceiling: exactly 60 questions per hour admitted in total (earlier calls counted)',n429===70-(60-5),'429s '+n429+' (5 counted earlier)');
+chk('per-user ceiling: exactly 60 questions per hour admitted in total (earlier calls counted)',n429===70-(60-7),'429s '+n429+' (7 counted earlier)');
 console.log(bad?'FAILED':'DONE');process.exit(bad);

@@ -23,7 +23,20 @@ export async function POST(request: Request) {
   const declared = Number(request.headers.get("content-length") || "0");
   if (declared > IMAGE_LIMITS.maxBytes) return NextResponse.json({ error: "Photo is too large (2 MB maximum).", code: "too_large" }, { status: 413 });
   let bytes: Uint8Array;
-  try { bytes = new Uint8Array(await request.arrayBuffer()); } catch { return NextResponse.json({ error: "Invalid upload." }, { status: 400 }); }
+  // Read the body as a stream and stop as soon as it passes the limit, even when Content-Length is missing or wrong.
+  try {
+    const reader = request.body?.getReader();
+    if (!reader) return NextResponse.json({ error: "The file is empty.", code: "empty" }, { status: 400 });
+    const chunks: Uint8Array[] = []; let total = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.length;
+      if (total > IMAGE_LIMITS.maxBytes) { await reader.cancel().catch(() => undefined); return NextResponse.json({ error: "Photo is too large (2 MB maximum).", code: "too_large" }, { status: 413 }); }
+      chunks.push(value);
+    }
+    bytes = new Uint8Array(total); let o = 0; for (const c of chunks) { bytes.set(c, o); o += c.length; }
+  } catch { return NextResponse.json({ error: "Invalid upload." }, { status: 400 }); }
   const v = validateImageBytes(bytes);
   if (!v.ok) {
     const status = v.code === "too_large" ? 413 : 400;

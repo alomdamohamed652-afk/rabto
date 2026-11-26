@@ -10,7 +10,7 @@ const ask=(question,extra={})=>call('/api/customer/assistant',{method:'POST',coo
 chk('admin guide API: anonymous 401, customer 403',(await call('/api/admin/guide')).s===401&&(await call('/api/admin/guide',{cookie:cust})).s===403);
 chk('admin writes: customer 403',(await call('/api/admin/guide',{method:'POST',cookie:cust,body:{}})).s===403&&(await call('/api/admin/support-contacts',{method:'POST',cookie:cust,body:{kind:'email',value:'a@b.co'}})).s===403);
 let r=await call('/api/admin/guide',{cookie:A});const entries=r.j.entries,contacts=r.j.contacts;
-chk('seeded with the built-in guide (22 entries) and the owner WhatsApp contact',r.s===200&&entries.length===22&&contacts.length===1&&contacts[0].kind==='whatsapp'&&contacts[0].value==='+201064589298');
+chk('seeded with the built-in guide (23 entries) and the owner WhatsApp contact',r.s===200&&entries.length===23&&contacts.length===1&&contacts[0].kind==='whatsapp'&&contacts[0].value==='+201064589298');
 r=await call('/api/customer/assistant',{cookie:cust});
 chk('customer FAQ grouped by topic, AR and EN questions, 4 topics',r.s===200&&r.j.topics.length===4&&r.j.topics.every(t=>t.items.length>0&&t.items.every(i=>i.ar&&i.en)),r.j.topics.map(t=>t.id+':'+t.items.length).join(' '));
 chk('WhatsApp contact is a wa.me link with digits only',r.j.contacts[0].url==='https://wa.me/201064589298');
@@ -45,4 +45,8 @@ const n=Number(q("select count(*) from audit_logs where action in ('guide.entry_
 chk('every change is audited: exactly 7 writes made so far, 7 audit rows',n===7,'rows '+n);
 const para=await Promise.all(Array.from({length:6},()=>call('/api/admin/guide',{method:'POST',cookie:A,body:{slug:'race-slug',topic:'help',answerAr:'ا',answerEn:'a'}})));
 chk('parallel creates with one slug: exactly one wins',para.filter(x=>x.s===201).length===1&&para.every(x=>x.s===201||x.s===409),para.map(x=>x.s).join(','));
+{const mkE=await call('/api/admin/guide',{method:'POST',cookie:A,body:{slug:'faq-pair',topic:'help',answerAr:'ا',answerEn:'a'}});const gl=await call('/api/admin/guide',{cookie:A});const id=(gl.j.entries||gl.j).find(e=>e.slug==='faq-pair')?.id;
+chk('PATCH with only an Arabic FAQ question is rejected 400',id&&(await call('/api/admin/guide/'+id,{method:'PATCH',cookie:A,body:{faqAr:'سؤال'}})).s===400,String(id));
+chk('PATCH with both FAQ questions is accepted',id&&(await call('/api/admin/guide/'+id,{method:'PATCH',cookie:A,body:{faqAr:'سؤال',faqEn:'Question'}})).s===200);
+chk('then clearing only one is rejected 400',id&&(await call('/api/admin/guide/'+id,{method:'PATCH',cookie:A,body:{faqEn:''}})).s===400);}
 console.log(bad?'FAILED':'DONE');process.exit(bad);

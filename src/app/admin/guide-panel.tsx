@@ -8,7 +8,7 @@ type Lang = "ar" | "en";
 type Entry = { id: string; slug: string; topic: string; section: string; faqAr: string; faqEn: string; answerAr: string; answerEn: string; keywords: string; visible: boolean; sortOrder: number };
 type Contact = { id: string; kind: "whatsapp" | "email"; value: string; labelAr: string; labelEn: string; visible: boolean };
 const TOPICS = ["menus", "products", "account", "help"];
-const SECTIONS = ["none", "menus", "plan", "products", "insights", "support", "verify", "phone", "workspace", "login", "language"];
+const SECTIONS = ["none", "menus", "plan", "products", "insights", "links", "support", "verify", "phone", "workspace", "login", "language"];
 const T = {
   ar: { kicker: "المساعد والدعم", heading: "محتوى الدليل وجهات الدعم", hint: "عدّل الإجابات والأسئلة الشائعة وجهات التواصل من هنا من غير تغيير كود. أي تغيير بيتسجل في سجل المراجعة، والإخفاء بيشيل العنصر من العملاء من غير ما يمسحه.",
     contacts: "جهات التواصل", kind: "النوع", wa: "واتساب", mail: "بريد إلكتروني", value: "الرقم أو البريد", labelAr: "الاسم بالعربي", labelEn: "الاسم بالإنجليزي", add: "إضافة", save: "حفظ", hide: "إخفاء", show: "إظهار", visible: "ظاهر", hidden: "مخفي",
