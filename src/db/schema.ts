@@ -117,6 +117,19 @@ export const digitalPages = pgTable("digital_pages", {
   updatedAt: updatedAt()
 }, (t) => [uniqueIndex("digital_pages_workspace_slug_unique").on(t.workspaceId, t.slug)]);
 
+export const digitalPageVersions = pgTable("digital_page_versions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  pageId: uuid("page_id").notNull().references(() => digitalPages.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  title: varchar("title", { length: 160 }).notNull(),
+  content: jsonb("content").$type<Record<string, unknown>>().notNull(),
+  publishedBy: uuid("published_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: createdAt()
+}, (t) => [
+  uniqueIndex("digital_page_versions_page_version_unique").on(t.pageId, t.version),
+  check("digital_page_versions_version_positive", sql`${t.version} > 0`)
+]);
+
 export const productPageLinks = pgTable("product_page_links", {
   id: uuid("id").defaultRandom().primaryKey(),
   productId: uuid("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
