@@ -1,0 +1,10 @@
+.assistant-chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.assistant-log{display:grid;gap:14px;margin:8px 0 14px}
+.assistant-turn{display:grid;gap:6px;padding:14px 16px;border:1px solid var(--line);border-radius:6px;background:#fbfaf6}
+.assistant-q{margin:0;font-weight:700}
+.assistant-a{margin:0;line-height:1.8}
+.assistant-go{font-weight:600;border-bottom:2px solid var(--sage-deep);justify-self:start}
+.assistant-turn small{color:var(--muted);font-size:14px}
+.assistant-form{display:flex;gap:10px;align-items:stretch}
+.assistant-form input{flex:1;min-width:0;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit;color:var(--ink)}
+@media (max-width:640px){.assistant-form{flex-direction:column}}

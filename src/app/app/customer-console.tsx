@@ -9,6 +9,7 @@ import PlanPanel from "./plan-panel";
 import SupportPanel from "./support-panel";
 import EmailVerifyPanel from "./email-verify-panel";
 import PhonePanel from "./phone-panel";
+import AssistantPanel from "./assistant-panel";
 import LanguageSwitcher, { useLanguage } from "@/lib/i18n/language-switcher";
 import { t, type MessageKey } from "@/lib/i18n/messages";
 
@@ -118,6 +119,7 @@ export default function CustomerConsole({ email, workspaces }: { email: string; 
           <label>{t(lang, "workspaceSection")}<select value={workspaceId} onChange={(e) => setWorkspaceId(e.target.value)}>{workspaces.map((workspace) => <option key={workspace.workspaceId} value={workspace.workspaceId}>{workspace.workspaceName}</option>)}</select></label>
           <span className="workspace-role">{(() => { const role = workspaces.find((w) => w.workspaceId === workspaceId)?.role; return role ? t(lang, WORKSPACE_ROLE_KEYS[role]) : ""; })()}</span>
         </section>
+        <AssistantPanel lang={lang === "en" ? "en" : "ar"} />
         <MenuEditor key={workspaceId} workspaceId={workspaceId} workspaceSlug={workspaces.find((w) => w.workspaceId === workspaceId)?.workspaceSlug || ""} lang={lang === "en" ? "en" : "ar"} />
         <PlanPanel key={"p-" + workspaceId} workspaceId={workspaceId} lang={lang === "en" ? "en" : "ar"} />
         <EmailVerifyPanel lang={lang === "en" ? "en" : "ar"} />
