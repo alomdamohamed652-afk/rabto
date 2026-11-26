@@ -4,12 +4,14 @@ const B=process.env.E2E_BASE_URL; const SINK=process.env.E2E_MAIL_SINK; const ou
 const chk=(k,ok,x='')=>{out.push((ok?'PASS ':'FAIL ')+k+(x?' '+x:''));if(!ok)bad++;};
 async function call(path,{method='GET',body,cookie,ip}={}){const r=await fetch(B+path,{method,headers:{...(body?{'content-type':'application/json'}:{}),...(cookie?{cookie}:{}),...(ip?{'x-forwarded-for':ip}:{})},body:body?JSON.stringify(body):undefined});let j=null;try{j=await r.json()}catch{};const sc=r.headers.get('set-cookie');return {s:r.status,j,cookie:sc?sc.split(';')[0]:null};}
 const q=(sql)=>execFileSync('psql',['-d','rabto_e2e','-Atc',sql],{encoding:'utf8'}).trim();
-const mails=()=>fs.existsSync(SINK)?fs.readFileSync(SINK,'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l)):[];
+const allMails=()=>fs.existsSync(SINK)?fs.readFileSync(SINK,'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l)):[];
+const mails=()=>allMails().filter(x=>!/confirmation code/.test(x.subject||''));
+const verifyMail=async(email,pw)=>{const lg=await call('/api/auth/login',{method:'POST',body:{email,password:pw},ip:'10.99.'+Math.floor(Math.random()*250)+'.'+Math.floor(Math.random()*250)});const cookie=lg.cookie;const r1=await call('/api/customer/email-verification',{method:'POST',cookie});const m=allMails().filter(x=>x.to===email&&/confirmation code/.test(x.subject||'')).pop();const c=m&&m.text.match(/\b(\d{6})\b/)?.[1];const r2=await call('/api/customer/email-verification',{method:'PUT',cookie,body:{code:c}});return r1.s===200&&r2.s===200;};
 const lastCode=(to)=>{const m=mails().filter(x=>x.to===to).pop();return m&&m.text.match(/\b(\d{6})\b/)?.[1];};
 let r=await call('/api/auth/login',{method:'POST',body:{email:'admin@test.local',password:'Admin-Test-Pass-123'}});const A=r.cookie;
 r=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email:'rs-a@test.local',workspaceName:'Rs a',workspaceSlug:'rs-a'}});
 const tok=new URL(r.j.invitation.url).searchParams.get('token');await call('/api/auth/accept-invitation',{method:'POST',body:{token:tok,password:'Old-Password-1234'}});
-await call('/api/admin/users/email-verified',{method:'PUT',cookie:A,body:{email:'rs-a@test.local',verified:true}});
+chk('mailbox verified by real mailed code',await verifyMail('rs-a@test.local','Old-Password-1234'));
 const E='rs-a@test.local';
 const u1=await call('/api/auth/password-reset/request',{method:'POST',body:{email:E},ip:'10.1.1.1'});
 const u2=await call('/api/auth/password-reset/request',{method:'POST',body:{email:'nobody@test.local'},ip:'10.1.1.2'});

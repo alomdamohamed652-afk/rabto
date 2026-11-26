@@ -4,7 +4,9 @@ const B=process.env.E2E_BASE_URL; const SINK=process.env.E2E_MAIL_SINK; const ou
 const chk=(k,ok,x='')=>{out.push((ok?'PASS ':'FAIL ')+k+(x?' '+x:''));if(!ok)bad++;};
 async function call(path,{method='GET',body,cookie,ip}={}){const r=await fetch(B+path,{method,headers:{...(body?{'content-type':'application/json'}:{}),...(cookie?{cookie}:{}),...(ip?{'x-forwarded-for':ip}:{})},body:body?JSON.stringify(body):undefined});let j=null;try{j=await r.json()}catch{};const sc=r.headers.get('set-cookie');return {s:r.status,j,cookie:sc?sc.split(';')[0]:null};}
 const q=(sql)=>execFileSync('psql',['-d','rabto_e2e','-Atc',sql],{encoding:'utf8'}).trim();
-const mails=()=>fs.existsSync(SINK)?fs.readFileSync(SINK,'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l)):[];
+const allMails=()=>fs.existsSync(SINK)?fs.readFileSync(SINK,'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l)):[];
+const mails=()=>allMails();
+const verifyMail=async(email,pw)=>{const lg=await call('/api/auth/login',{method:'POST',body:{email,password:pw},ip:'10.99.'+Math.floor(Math.random()*250)+'.'+Math.floor(Math.random()*250)});const cookie=lg.cookie;const r1=await call('/api/customer/email-verification',{method:'POST',cookie});const m=allMails().filter(x=>x.to===email&&/confirmation code/.test(x.subject||'')).pop();const c=m&&m.text.match(/\b(\d{6})\b/)?.[1];const r2=await call('/api/customer/email-verification',{method:'PUT',cookie,body:{code:c}});return r1.s===200&&r2.s===200;};
 const lastCode=(to)=>{const m=mails().filter(x=>x.to===to).pop();return m&&m.text.match(/\b(\d{6})\b/)?.[1];};
 const ADM=await call('/api/auth/login',{method:'POST',body:{email:'admin@test.local',password:'Admin-Test-Pass-123'}});const A=ADM.cookie;
 const mk=async(email,slug,phone,pw)=>{const r=await call('/api/admin/customers',{method:'POST',cookie:A,body:{email,workspaceName:slug,workspaceSlug:slug,phone}});if(r.s!==200&&r.s!==201)return r;const tok=new URL(r.j.invitation.url).searchParams.get('token');await call('/api/auth/accept-invitation',{method:'POST',body:{token:tok,password:pw}});return r;};
@@ -23,7 +25,7 @@ chk('unknown phone and wrong password look identical',u1.s===401&&u2.s===401&&JS
 chk('garbage identifier rejected as invalid credentials',(await call('/api/auth/login',{method:'POST',body:{email:'not a thing',password:PW},ip:'10.9.1.4'})).s===401);
 let bf=0,be=0;for(let i=0;i<14;i++){const r2=await call('/api/auth/login',{method:'POST',body:{email:'ph-n@test.local',password:'Bad-Password-'+i+'xx'},ip:'10.9.2.2'});if(r2.s===429)be++;const r=await call('/api/auth/login',{method:'POST',body:{email:'01012345678',password:'Bad-Password-'+i+'xx'},ip:'10.9.2.1'});if(r.s===429)bf++;}
 chk('phone failures are counted and behave like email failures',bf===be&&Number(q("select count(*) from login_attempts where failed_count>=10"))>=2,'phone 429s '+bf+' email 429s '+be);
-await call('/api/admin/users/email-verified',{method:'PUT',cookie:A,body:{email:'ph-a@test.local',verified:true}});
+chk('mailbox verified by real mailed code',await verifyMail('ph-a@test.local',PW));
 // session epoch
 const E='ph-a@test.local';
 const old=await call('/api/auth/login',{method:'POST',body:{email:E,password:PW},ip:'10.8.0.1'});const OC=old.cookie;

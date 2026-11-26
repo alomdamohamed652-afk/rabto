@@ -71,6 +71,13 @@
       "when": 1796431200000,
       "tag": "0009_support_tickets",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1796517600000,
+      "tag": "0010_email_verification_codes",
+      "breakpoints": true
     }
   ]
 }

@@ -347,6 +347,17 @@ export const passwordResetCodes = pgTable("password_reset_codes", {
   createdAt: createdAt()
 }, (t) => [index("password_reset_codes_user_idx").on(t.userId, t.createdAt)]);
 
+/** Mailed proof of mailbox ownership: a logged-in customer confirms a code sent to their account email. */
+export const emailVerificationCodes = pgTable("email_verification_codes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  codeHash: varchar("code_hash", { length: 64 }).notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: createdAt()
+}, (t) => [index("email_verification_codes_user_idx").on(t.userId, t.createdAt)]);
+
 /** Support: one thread per ticket, tenant-scoped. Customer message sets open, staff reply sets pending. */
 export const supportTickets = pgTable("support_tickets", {
   id: uuid("id").defaultRandom().primaryKey(),

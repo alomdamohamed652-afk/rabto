@@ -7,6 +7,11 @@ export function hashCode(userId, code, secret = process.env.SESSION_SECRET) {
   if (typeof secret !== "string" || secret.length < 32) throw new Error("SESSION_SECRET must be configured.");
   return createHmac("sha256", secret).update("pwreset:" + userId + ":" + code, "utf8").digest("hex");
 }
+/** Separate hash domain so a verification code can never be used as a reset code or the reverse. */
+export function hashVerifyCode(userId, code, secret = process.env.SESSION_SECRET) {
+  if (typeof secret !== "string" || secret.length < 32) throw new Error("SESSION_SECRET must be configured.");
+  return createHmac("sha256", secret).update("emailverify:" + userId + ":" + code, "utf8").digest("hex");
+}
 export function validateResetRequest(body) {
   if (!body || typeof body.email !== "string") return { ok: false };
   const email = body.email.trim().toLowerCase();
