@@ -64,9 +64,9 @@ export default function PlansPanel({ plans, customers, lang, onChanged }: { plan
       {plans.length === 0 ? <p className="empty-state">{t.empty}</p> : <div className="customer-list">{plans.map((p) => (
         <div className="customer-row" key={p.id}>
           <div><strong>{p.name}{p.isActive ? "" : " · off"}</strong>
-            <small>{t.maxProducts}: {lim(p.maxActivatedProducts)} · {t.maxPages}: {lim(p.maxPages)} · {t.analytics}: {p.analyticsEnabled ? t.yes : t.no}</small>
+            <small>{t.maxProducts}: {lim(p.maxActivatedProducts)}</small><small>{t.maxPages}: {lim(p.maxPages)}</small><small>{t.analytics}: {p.analyticsEnabled ? t.yes : t.no}</small>
             {p.priceNote && <small>{p.priceNote}</small>}</div>
-          <button type="button" className="list-more" onClick={() => startEdit(p)}>{t.edit}</button>
+          <button type="button" className="admin-secondary" onClick={() => startEdit(p)}>{t.edit}</button>
         </div>))}</div>}
       <form className="admin-form" onSubmit={submitPlan}>
         <label>{t.name}<input required minLength={2} maxLength={80} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
@@ -75,8 +75,8 @@ export default function PlansPanel({ plans, customers, lang, onChanged }: { plan
         <label>{t.credits}<input type="number" min={0} inputMode="numeric" value={form.includedCredits} onChange={(e) => setForm({ ...form, includedCredits: e.target.value })} /></label>
         <label>{t.maxProducts}<input type="number" min={0} inputMode="numeric" placeholder={t.unlimited} value={form.maxActivatedProducts} onChange={(e) => setForm({ ...form, maxActivatedProducts: e.target.value })} /></label>
         <label>{t.maxPages}<input type="number" min={0} inputMode="numeric" placeholder={t.unlimited} value={form.maxPages} onChange={(e) => setForm({ ...form, maxPages: e.target.value })} /></label>
-        <label className="check-row"><input type="checkbox" checked={form.analyticsEnabled} onChange={(e) => setForm({ ...form, analyticsEnabled: e.target.checked })} /> {t.analytics}</label>
-        <label className="check-row"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> {t.active}</label>
+        <label className="check"><input type="checkbox" checked={form.analyticsEnabled} onChange={(e) => setForm({ ...form, analyticsEnabled: e.target.checked })} /> {t.analytics}</label>
+        <label className="check"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> {t.active}</label>
         <button className="admin-primary">{editId ? t.save : t.create} <span>←</span></button>
         {editId && <button type="button" className="list-more" onClick={() => { setEditId(""); setForm(blank); }}>{t.cancel}</button>}
       </form>
