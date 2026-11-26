@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { getLang } from "@/lib/i18n/messages";
+import { LanguageProvider } from "@/lib/i18n/language-switcher";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
-      <body>{children}</body>
+      <body><LanguageProvider initialLanguage={lang}>{children}</LanguageProvider></body>
     </html>
   );
 }
